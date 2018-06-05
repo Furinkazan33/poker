@@ -8,9 +8,11 @@ var db = function(config) {
 
     // init sqlite db        
     var dbFile = root_folder + '/' + config.dbFile;
-    var exists = fs.existsSync(dbFile);
     var sqlite3DB = new sqlite3.Database(dbFile);
     
+    this.exists = function () {
+        return fs.existsSync(dbFile)
+    }
 
     this._query_from_file = function (filename) {
         fs.readFile(filename, 'utf8', function (err, query) {
