@@ -33,8 +33,18 @@ var db = function(config) {
 
     this.insert_player = function (player) {
         sqlite3DB.serialize(function(){
-            sqlite3DB.serialize(function() {
-                sqlite3DB.run('INSERT INTO Player () VALUES ("' + player.name + '", , )')
+            sqlite3DB.run('INSERT INTO Player () VALUES ("' + player.name + '", , )')
+        })
+    }
+
+    this.get_players = function (cb) {
+        console.log("a")
+
+        sqlite3DB.serialize(function() {
+            console.log("b")
+            sqlite3DB.run('SELECT * FROM Player', function (err, res) {
+                console.log("c")
+                cb(err, res)
             })
         })
     }

@@ -1,9 +1,14 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET home page. */
+
 router.get('/', function(req, res, next) {
-  res.send({ a: "ok" })
+//  res.send({ a: "a" })  
+
+  db.get_players(function(err, players) {
+    return res.send({ a: "a" })
+  })
+  
 
 });
 

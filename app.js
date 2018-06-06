@@ -19,7 +19,7 @@ if (!db.exists) { db.create_tables() }
 var logic = require('./logic')()
 
 
-
+console.log("aaa")
 
 app.use('/', indexRouter);
 
