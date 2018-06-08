@@ -1,12 +1,13 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
+var db = require('../db')()
 
 
 router.get('/', function(req, res, next) {
-//  res.send({ a: "a" })  
 
-  db.get_players(function(err, players) {
-    return res.send({ a: "a" })
+  db.find("player", { name: "Marcel3" }, function(players) {
+    //console.log(players)
+    res.json(players)
   })
   
 

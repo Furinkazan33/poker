@@ -14,12 +14,13 @@ app.use(express.urlencoded({ extended: false }));
 
 var db = require('./db')()
 
-if (!db.exists) { db.create_tables() }
+//db.create_db() 
+//db.create_collections(["player"])
+
+db.insert("player", { name: "Marcel3" })
 
 var logic = require('./logic')()
 
-
-console.log("aaa")
 
 app.use('/', indexRouter);
 
