@@ -4,9 +4,11 @@ var express = require('express');
 var debug = require('debug')
 var logger = require('morgan');
 
-var indexRouter = require('./routes/index');
+var v1Router = require('./routes/v1');
 
 var app = express();
+//app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -16,13 +18,12 @@ var db = require('./db')()
 
 //db.create_db() 
 //db.create_collections(["player"])
-
-db.insert("player", { name: "Marcel3" })
+//db.insert("player", { name: "Marcel3" })
 
 var logic = require('./logic')()
 
 
-app.use('/', indexRouter);
+app.use('/v1', v1Router);
 
 
 
