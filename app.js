@@ -1,31 +1,31 @@
-var createError = require('http-errors');
+
+var env = process.env.NODE_ENV || 'dev';
+
 var express = require('express');
-//var path = require('path');
-var debug = require('debug')
 var logger = require('morgan');
-
-var v1Router = require('./routes/v1');
-
 var app = express();
-//app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'pug');
-
-app.use(logger('dev'));
+app.use(logger(env));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-var db = require('./db')()
+if (env == 'dev') {
+  var createError = require('http-errors');
+  var path = require('path');
+  app.set('views', path.join(__dirname, 'views'));
+  app.set('view engine', 'pug');
+}
 
+
+var v1Router = require('./routes/v1');
+
+var db = require('./db')()
 //db.create_db() 
 //db.create_collections(["player"])
 //db.insert("player", { name: "Marcel3" })
-
 var logic = require('./logic')()
 
 
 app.use('/v1', v1Router);
-
-
 
 
 // catch 404 and forward to error handler
