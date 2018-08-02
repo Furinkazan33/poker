@@ -5,19 +5,19 @@ var logic = function(config) {
 
 
         /* Début de la partie */
-        socket.on("server.game.start", function(message) {
+        io.on("server.game.start", function(message) {
             this.player = message.data.info
             this.nbPlayers = message.data.count
         })
     
         /* Réception des cartes */
-        socket.on("server.game.cards", function(message) {
+        io.on("server.game.cards", function(message) {
             this.myCards = message.data.cards
         })
         
 
         /* Une nouvelle main commence */
-        socket.on("server.game.hand.start", function(message) {
+        io.on("server.game.hand.start", function(message) {
             // sorted by turn
             this.players = message.data.players
 
@@ -25,31 +25,33 @@ var logic = function(config) {
 
 
         /* le joueur doit indiquer son coup */
-        socket.on("server.game.play", function(message) {
-
+        io.on("server.game.play", function(message) {
+            //TODO: 
+            io.emit(this.message(this.action.))
+        
         })
 
 
         /* le joueur a mis trop de temps avant de répondre */
-        socket.on("server.game.play.timeout", function(message) {
+        io.on("server.game.play.timeout", function(message) {
 
         })
 
 
         /* coup valide et pris en compte */
-        socket.on("server.game.play.success", function(message) {
+        io.on("server.game.play.success", function(message) {
 
         })
 
 
         /* coup non valide et pas pris en compte */
-        socket.on("server.game.play.failure", function(message) {
+        io.on("server.game.play.failure", function(message) {
 
         })
 
 
         /* Transmis aux autres joueurs suite à un coup valide */
-        socket.on("server.player.action", function(message) {
+        io.on("server.player.action", function(message) {
             this.player_id = message.data.id
             this.action = message.data.action
 
@@ -57,20 +59,20 @@ var logic = function(config) {
 
 
         /* Nouvelles cartes ajoutées sur le tapis */
-        socket.on("server.game.board.cards", function(message) {
+        io.on("server.game.board.cards", function(message) {
             this.cards = message.data.cards
 
         })
 
 
         /* Une main se termine */
-        socket.on("server.game.hand.end", function(message) {
+        io.on("server.game.hand.end", function(message) {
 
         })
 
 
         /* Fin de la partie */
-        socket.on("server.game.end", function(message) {
+        io.on("server.game.end", function(message) {
             this.winner = message.data.winner
 
         })
