@@ -1,0 +1,6 @@
+{
+    "debug": true,
+    "name": "Les cannards loqués",
+    "localport": 3001,
+    "host": "localhost", "port": 1300
+}

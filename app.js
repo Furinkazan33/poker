@@ -6,19 +6,20 @@ var logger = require('morgan');
 var app = express();
 app.use(logger(env));
 
-var v1Router = require('./routes/v1');
+var player = require('./player')({
+    "debug": true,
+    "name": "Les cannards loqués",
+    "localport": 3001,
+    "host": "localhost", "port": 1300
+})
 
-//var db = require('./db')()
-//db.create_db() 
-//db.create_collections(["player"])
-//db.insert("player", { name: "Marcel3" })
-var io = require('socket.io-client')
-var logic = require('./logic').default()
+var player2 = require('./player')({
+    "debug": true,
+    "name": "P2",
+    "localport": 3002,
+    "host": "localhost", "port": 1300
+})
 
-
-
-
-app.use('/v1', v1Router);
 
 
 module.exports = app;
