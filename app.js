@@ -14,7 +14,7 @@ var player = require('./player')({
 })
 
 var player2 = require('./player')({
-    "debug": true,
+    "debug": false,
     "name": "P2",
     "localport": 3002,
     "host": "localhost", "port": 1300
