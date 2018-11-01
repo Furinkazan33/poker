@@ -8,8 +8,41 @@ module.exports = function(config) {
     var net = require("net")
     var socket = new net.Socket()
     
+    function log(message){ 
+        if(config.debug){ 
+            console.log(config.name)
+            console.log(message)
+        }
+    }
+
+    // Bidouille de Kevin
+    const ERROR_REGEX = /^Unexpected token { in JSON at position (\d+)$/;
+    function jsonMultiParse(input, acc = []) {
+        if (input.trim().length === 0) {
+            return acc;
+        }
+        try {
+            acc.push(JSON.parse(input));
+            return acc;
+        }
+        catch (error) {
+            const match = error.message.match(ERROR_REGEX);
+            if (!match) {
+                throw error;
+            }
+            const index = parseInt(match[1], 10);
+            acc.push(JSON.parse(input.substr(0, index)));
+            return jsonMultiParse(input.substr(index), acc);
+        }
+    }
+
 
     socket.connect(config.port, config.host, function() {
+        log(config.name + " connected to server with port " + config.localport);  
+        
+        socket.write('{ "id": "client.lobby.join", "data": { "name": "' + config.name + '" } }')
+
+
         this.game = {
             players: [],        // liste des joueurs
             nbPlayers: 0,       // nombre de joueurs de la partie
@@ -48,40 +81,11 @@ module.exports = function(config) {
         action.fold = () => play(0)
         
     
-        log = (message) => { 
-            if(config.debug){ 
-                console.log(config.name)
-                console.log(message)
-            }
-        }
-    
-        // Bidouille de Kevin
-        const ERROR_REGEX = /^Unexpected token { in JSON at position (\d+)$/;
-        function jsonMultiParse(input, acc = []) {
-            if (input.trim().length === 0) {
-                return acc;
-            }
-            try {
-                acc.push(JSON.parse(input));
-                return acc;
-            }
-            catch (error) {
-                const match = error.message.match(ERROR_REGEX);
-                if (!match) {
-                    throw error;
-                }
-                const index = parseInt(match[1], 10);
-                acc.push(JSON.parse(input.substr(0, index)));
-                return jsonMultiParse(input.substr(index), acc);
-            }
-        }
         
-        log(config.name + " connected to server with port " + config.localport);  
         
-        socket.write('{ "id": "client.lobby.join", "data": { "name": "' + config.name + '" } }')
-
+        
         socket.on('data', function(message_brut) {
-            //log('Received: ' + message_brut)
+            log('Received: ' + message_brut)
             //message = JSON.parse(message_brut)
             messages = jsonMultiParse(message_brut.toString())
 
@@ -97,7 +101,7 @@ module.exports = function(config) {
                     log(config.name + " rejet. Raison : " + message.data.reason)
                     break;
     
-                    case "server.game.start":
+                    case 'server.game.start':
                         log("Début de la partie")
                         log("Infos " + config.name + " : ")
                         log(message.data.info)
@@ -108,13 +112,13 @@ module.exports = function(config) {
                         this.game.hand.id = 0
                         break
         
-                    case "server.game.player.cards":
+                    case 'server.game.player.cards':
                         log("Réception des cartes")
                         log(message.data.cards)
                         this.player.cards = message.data.cards
                         break
             
-                    case "server.game.hand.start":
+                    case 'server.game.hand.start':
                         this.game.hand.id++
                         this.game.hand.turn = 0
                         log("Une nouvelle main commence : " + this.game.hand.id)
@@ -135,7 +139,7 @@ module.exports = function(config) {
                         break
                     
                     // Pas dans la spec
-                    case "server.game.blind.change":
+                    case 'server.game.blind.change':
                         log("Nouvelle blind : " + message.data.small + " / " + message.data.big)
                         this.game.blind.small = message.data.small
                         this.game.blind.big = message.data.big
@@ -150,7 +154,7 @@ module.exports = function(config) {
                         log("Le tour se termine")
                         break
     
-                    case "server.game.player.play":
+                    case 'server.game.player.play':
                         log("Le joueur doit indiquer son coup")
                         var my_action
     
@@ -162,7 +166,15 @@ module.exports = function(config) {
                         }
                         else {
                             //TODO: 
-                            my_action = action.call()
+                            //if(config.CALL) {
+                            //    my_action = action.call()
+                            //}
+                            if (this.player.chips < 500) {
+                                my_action = action.call()
+                            }
+                            else {
+                                my_action = action.raise(100)
+                            }
                         }
     
                         log(my_action)
@@ -170,31 +182,31 @@ module.exports = function(config) {
     
                         break
                     
-                    case "server.game.player.play.timeout":
+                    case 'server.game.player.play.timeout':
                         log("Le joueur a mis trop de temps avant de répondre")
     
                         break
     
     
-                    case "server.game.play.success":
+                    case 'server.game.play.success':
                         log("Coup valide et pris en compte")
     
                         break
     
                     
-                    case "server.game.play.failure":
+                    case 'server.game.play.failure':
                         log("Coup non valide et pas pris en compte")
     
                         break
     
                     
-                    case "server.game.player.action":
+                    case 'server.game.player.action':
                         log("Coup valide du joueur " + message.data.id + ", mise : " + message.data.value)
                         
                         
                         break
     
-                    case "server.game.board.cards":
+                    case 'server.game.board.cards':
                         log("Nouvelles cartes ajoutées sur le tapis")
                         log(message.data.cards)
                         this.player.cards = this.player.cards.concat(message.data.cards)
@@ -202,13 +214,13 @@ module.exports = function(config) {
                         log(this.player.cards)
                         break
     
-                    case "server.game.hand.end":
+                    case 'server.game.hand.end':
                         log("Une main se termine")
                         
                         break
     
     
-                    case "server.game.end":
+                    case 'server.game.end':
                         log("Fin de la partie. Gagnant : ")
                         log(message.data.winner)
                         //this.winner = message.data.winner
