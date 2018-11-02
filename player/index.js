@@ -69,7 +69,7 @@ module.exports = function(config) {
     
         
         // Formatage du message à envoyer au serveur
-        play = (value) => ({ id: "client.game.player.play", data: { value: value } })
+        play = (value) => ('{ "id": "client.game.player.play", "data": { "value": "'+value+'" } }')
         
         // Les actions possibles du joueur
         action = {}
@@ -156,7 +156,7 @@ module.exports = function(config) {
     
                     case 'server.game.player.play':
                         log("Le joueur doit indiquer son coup")
-                        var my_action
+                        var my_action = ""
     
                         if (this.game.hand.turn == 1 && this.player.id == this.game.players[0].id) {
                             my_action = action.blind_small()
@@ -176,9 +176,9 @@ module.exports = function(config) {
                                 my_action = action.raise(100)
                             }
                         }
-    
+                        
                         log(my_action)
-                        socket.emit(my_action)
+                        socket.write(my_action)
     
                         break
                     
@@ -202,7 +202,7 @@ module.exports = function(config) {
                     
                     case 'server.game.player.action':
                         log("Coup valide du joueur " + message.data.id + ", mise : " + message.data.value)
-                        
+                        this.last_value = message.data.value
                         
                         break
     
