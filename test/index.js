@@ -1,0 +1,3 @@
+
+var cards = require('./cards')()
+
