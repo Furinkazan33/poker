@@ -213,6 +213,9 @@ module.exports = function(config) {
                 case 'server.game.board.cards':
                     //log("info", "Nouvelles cartes ajoutées sur le tapis")
                     //log(message.data.cards)
+                    message.data.cards.forEach(card => {
+                        //TODO: utiliser le module cards
+                    });
                     this.player.cards = this.player.cards.concat(message.data.cards)
                     //log("info", "Cartes du joueur")
                     //log(this.player.cards)
