@@ -1,4 +1,4 @@
-module.exports = function(config) {
+//var cards = function(config) {
 
     var hands = { 
         carte: { get: false, value: null },
@@ -69,12 +69,12 @@ module.exports = function(config) {
         }
     }
     
+    //return this
+//}
 
 
-    
-
-
-
-    /* module */
-    return this
+module.exports = {
+    hands: hands,
+    add_card: add_card,
+    CARDS
 }

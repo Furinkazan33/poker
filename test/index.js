@@ -1,5 +1,5 @@
 
-var cards = require('../cards')()
+var cards = require('../cards')
 
     
 var mycards = [ 
@@ -12,8 +12,7 @@ var mycards = [
     { color: "SPADE", kind: "JACK"},
 ]
 
-console.log(cards)
 
 mycards.forEach(c => cards.add_card(c))
 
-cards.CARDS
+console.log(cards.CARDS)
