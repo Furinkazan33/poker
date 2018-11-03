@@ -70,20 +70,7 @@ module.exports = function(config) {
     }
     
 
-    function test() {
-    
-        var cards = [ 
-            { color: "DIAMOND", kind: "QUEEN" },    
-            { color: 'SPADE', kind: '8' },
-            { color: 'DIAMOND', kind: '2' },
-            { color: "HEART", kind: "JACK"},
-            { color: 'DIAMOND', kind: '9' },
-            { color: 'SPADE', kind: '10' },
-            { color: "SPADE", kind: "JACK"},
-        ]
-        
-        cards.forEach(c => this.add_card(c))
-    }
+
     
 
 
