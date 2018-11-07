@@ -7,6 +7,7 @@ module.exports = function(config) {
  
     var net = require("net")
     var socket = new net.Socket()
+    var cards = require('../cards')
     
     function log(type, message){ 
         if(config.debug){ 
@@ -73,6 +74,7 @@ module.exports = function(config) {
                 turn: 0,        // numéro du tour de la main
             },
             dealer: null,       // id du donneur
+            mise_en_cours: 0,      // Dernière mise des joueurs
             blind: { 
                 small: 0,       // Valeur de la blind
                 big: 0          // Valeur de la blind
@@ -82,25 +84,33 @@ module.exports = function(config) {
         this.player = {
             id: null,           // id du joueur
             chips: 0,           // tapis du joueur
-            cards: [],          // liste des cartes dans la main
-            blind: { 
-                small: false,   // le joueur doit jouer la blind ?
-                big: false      // le joueur doit jouer la blind ?
-            }, 
+            mise_en_cours: 0,        // Mise en cours
+            mise_totale: 0,
+            coef: 0.15,               // ce que je suis prêt à miser
         }
     
         
         // Formatage du message à envoyer au serveur
-        play = (value) => ('{ "id": "client.game.player.play", "data": { "value": "'+value+'" } }')
+        this._play = (value) => '{ "id": "client.game.player.play", "data": { "value": ' + parseInt(value) + ' } }'
         
         // Les actions possibles du joueur
-        action = {}
-        //action.blind_small = () => play(this.game.blind.small)
-        //action.blind_big = () => play(this.game.blind.big)
-        action.check = () => play(0)
-        action.call = () => play(parseInt(this.last_value))
-        action.raise = (value) => play(parseInt(this.last_value) + value)
-        action.fold = () => play(0)
+        this.action = {}
+        this.action.mise = (value) => {
+            var a_miser = parseInt(this.game.mise_en_cours - this.player.mise_en_cours) + value
+            if(a_miser > this.player.chips) {
+                a_miser = this.player.chips
+            }
+            if(a_miser < this.game.blind.big) {
+                a_miser = this.game.blind.big
+            }
+            if(this.player.chips < this.game.blind.big) {
+                a_miser = 0
+            }
+            return this._play(a_miser)
+        }
+        this.action.aligne = () => { return this.action.mise(0) }
+        this.action.couche = () => { return this._play(0) }
+        this.action.tapis = () => { return this._play(this.player.chips) }
         
     
         var reponse = ((message) => {
@@ -130,7 +140,9 @@ module.exports = function(config) {
                 case 'server.game.player.cards':
                     //log("info", "Réception des cartes")
                     //log("info", message.data.cards)
-                    this.player.cards = message.data.cards
+                    cards = new cards()
+                    cards.add_cards(message.data.cards)
+                    cards.check_hand()
                     break
         
                 case 'server.game.hand.start':
@@ -150,6 +162,8 @@ module.exports = function(config) {
                             this.player.chips = p.chips
                         }
                     });
+
+                    this.player.en_cours = 0
                     
                     break
                 
@@ -171,18 +185,48 @@ module.exports = function(config) {
 
                 case 'server.game.player.play':
                     //log("info", "Le joueur doit indiquer son coup")
+                    //TODO: verif si all-in en cours
                     var my_action = ""
+                    var a_miser = this.player.coef * this.player.chips
+                    var reste_a_miser = a_miser - this.player.en_cours
                     
-                    //TODO: 
-                    if (this.player.chips < 500) {
-                        my_action = action.call()
+                    if(this.player.coef == 0) {
+                        my_action = this.action.couche()
+                    }
+                    else if(this.player.coef >= 0.9) {
+                        if(reste_a_miser > 0.25 * a_miser) {
+                            my_action = this.action.mise(100)
+                        }
+                        else {
+                            my_action = this.action.tapis()
+                        }
                     }
                     else {
-                        my_action = action.raise(100)
+                        // On a la marge, on joue
+                        if(reste_a_miser > 0.5 * a_miser) {   
+                            my_action = this.action.mise(0.1 * reste_a_miser)
+                        }
+                        // On prends des précautions
+                        else {
+                            if(reste_a_miser > 0.25 * a_miser) {
+                                my_action = this.action.aligne()
+                            }
+
+                            // Tapis
+                            else {
+                                my_action = this.action.mise(reste_a_miser)
+                            }
+                        }
                     }
-                    
+                    console.log(this.player.coef)
+                    console.log(my_action)
                     log("player", my_action)
                     socket.write(my_action)
+
+
+                    var my_action_json = JSON.parse(my_action)
+                    this.player.mise_totale += my_action_json.data.value
+                    this.player.mise_en_cours = my_action_json.data.value
 
                     break
                 
@@ -206,31 +250,25 @@ module.exports = function(config) {
                 
                 case 'server.game.player.action':
                     //log("info", "Coup valide du joueur " + message.data.id + ", mise : " + message.data.value)
-                    this.last_value = message.data.value
+                    this.game.mise_en_cours = message.data.value
                     
                     break
 
                 case 'server.game.board.cards':
                     //log("info", "Nouvelles cartes ajoutées sur le tapis")
-                    //log(message.data.cards)
-                    message.data.cards.forEach(card => {
-                        //TODO: utiliser le module cards
-                    });
-                    this.player.cards = this.player.cards.concat(message.data.cards)
-                    //log("info", "Cartes du joueur")
-                    //log(this.player.cards)
+                    cards.add_cards(message.data.cards)
+                    this.player.coef = cards.check_hand()
+
                     break
 
                 case 'server.game.hand.end':
                     //log("info", "Une main se termine")
-                    
                     break
 
 
                 case 'server.game.end':
                     //log("info", "Fin de la partie. Gagnant : ")
                     //log("info", message.data.winner)
-                    //this.winner = message.data.winner
                     break
                     
                 default:
@@ -240,15 +278,7 @@ module.exports = function(config) {
         }).bind(this)
         
         
-        socket.on('data', (function(message_brut) {
-
-
-
-
-
-            //log("server", message_brut.toString())
-            //messages = JSON.parse(message_brut)
-            
+        socket.on('data', (function(message_brut) {            
             
             decoup(message_brut.toString(), (function(messages) {
 
