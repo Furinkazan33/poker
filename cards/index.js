@@ -22,6 +22,10 @@ function Cards(config) {
     this.cards = []
 
     this.nb_as = 0
+
+    this.max_suite = 0
+
+    this.max_color = 0
 }
 
 
@@ -50,6 +54,10 @@ Cards.prototype.reset = function() {
     this.cards = []
 
     this.nb_as = 0
+
+    this.max_suite = 0
+
+    this.max_color = 0
 }
 
 Cards.prototype.clone_card = function(card) {
@@ -147,6 +155,11 @@ Cards.prototype.check_colors = function (cards, hands) {
         hands.couleur.value = this.get_value(couleurs.CLUB[c - 1]) 
     } 
 
+    if(d > this.max_color) { this.max_color = d}
+    if(s > this.max_color) { this.max_color = s}
+    if(h > this.max_color) { this.max_color = h}
+    if(c > this.max_color) { this.max_color = c}
+
     return hands
 }
 
@@ -243,6 +256,8 @@ Cards.prototype.check_suites = function(cards, hands) {
     for (let i = 0; i < suites.length; i++) {
         var length = suites[i].length
 
+        if(length > this.max_suite) { this.max_suite = length }
+
         if(length >= 5) {
             this.log(suites[i])
             hands.quinte.get = true
@@ -286,21 +301,77 @@ Cards.prototype.check_hand = function() {
     // Carte
     case 0:
         if(nb_cards <= 2) { coef = 0.05 }
-        if(nb_cards == 3) { coef = 0 }
-        if(nb_cards == 4) { coef = 0 }
-        if(nb_cards == 5) { coef = 0 }
-        if(nb_cards == 6) { coef = 0 }
+        if(nb_cards == 3) { 
+            coef = 0; 
+            if(this.max_color >= 3 || this.max_suite >= 3) {
+                coef = 0.1
+            } 
+        }
+        if(nb_cards == 4) { 
+            coef = 0 
+            if(this.max_color >= 3 || this.max_suite >= 3) {
+                coef = 0.1
+            }
+            if(this.max_color >= 4 || this.max_suite >= 4) {
+                coef = 0.2
+            } 
+        }
+        if(nb_cards == 5) { 
+            coef = 0 
+            if(this.max_color >= 4 || this.max_suite >= 4) {
+                coef = 0.15
+            } 
+        }
+        if(nb_cards == 6) { 
+            coef = 0
+
+            if(this.max_color >= 4 || this.max_suite >= 4) {
+                coef = 0.1
+            } 
+        }
         if(nb_cards >= 7) { coef = 0 }
         break
     
     // Paire
     case 0.1:
-        if(nb_cards == 2) { coef = 0.15 }
-        if(nb_cards == 3) { coef = 0.1 }
-        if(nb_cards == 4) { coef = 0.07 }
-        if(nb_cards == 5) { coef = 0.05 }
-        if(nb_cards == 6) { coef = 0 }
-        if(nb_cards >= 7) { coef = 0 }
+        if(nb_cards == 2) { 
+            coef = 0.15
+        }
+        if(nb_cards == 3) { 
+            coef = 0.1 
+            if(this.max_color >= 3 || this.max_suite >= 3) {
+                coef = 0.1
+            }
+            if(this.max_color >= 4 || this.max_suite >= 4) {
+                coef = 0.2
+            } 
+        }
+        if(nb_cards == 4) { 
+            coef = 0.07
+            if(this.max_color >= 3 || this.max_suite >= 3) {
+                coef = 0.1
+            }
+            if(this.max_color >= 4 || this.max_suite >= 4) {
+                coef = 0.2
+            } 
+        }
+        if(nb_cards == 5) { 
+            coef = 0.05
+            if(this.max_color >= 3 || this.max_suite >= 3) {
+                coef = 0.1
+            }
+            if(this.max_color >= 4 || this.max_suite >= 4) {
+                coef = 0.2
+            } 
+        }
+        if(nb_cards == 6) { 
+            coef = 0 
+            
+        }
+        if(nb_cards >= 7) { 
+            coef = 0 
+            
+        }
         break
 
     // Double paire

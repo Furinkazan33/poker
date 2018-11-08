@@ -158,7 +158,6 @@ function Player(cards, config) {
         
                 case 'server.game.hand.start':
                     cards.reset()
-                    console.log("reset")
                     this.game.hand.id++
                     this.game.hand.turn = 0
                     this.game.hand.allin = false
@@ -214,7 +213,7 @@ function Player(cards, config) {
                             my_action = this.action.tapis()
                         }
                         else if(reste_a_miser > 0.25 * a_miser) {
-                            my_action = this.action.mise(100)
+                            my_action = this.action.mise(50)
                         }
                         else {
                             my_action = this.action.tapis()
@@ -237,7 +236,7 @@ function Player(cards, config) {
                             }
                         }
                     }
-                    log(this.player.coef)
+                    //log(this.player.coef)
                     log("player", my_action)
                     socket.write(my_action)
 
@@ -257,6 +256,7 @@ function Player(cards, config) {
                 
                 case 'server.game.player.play.failure':
                     //log("info", "Coup non valide et pas pris en compte")
+                    socket.write(this.action.mise(0))
 
                     break
 
