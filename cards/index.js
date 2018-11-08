@@ -1,10 +1,11 @@
 module.exports = Cards
 
+
 function Cards(config) {
     if(!config) { config = require('./config.json') }
 
-    this.debug = config.debug
-
+    this.config = config
+    
     this.hands = { 
         carte: { get: false, value: 0, coef: 0 }, // Je ne joue pas la carte haute
         paire: { get: false, value: 0, coef: 0.1 },
@@ -25,7 +26,30 @@ function Cards(config) {
 
 
 Cards.prototype.log = function(message) {
-    this.debug && console.log("cards.js : " + message)
+    if(this.config.debug) {
+        console.log(message)
+        //stream.write(message.toString())
+        //stream.write('\n')
+    }
+}
+
+Cards.prototype.reset = function() {
+    this.hands = { 
+        carte: { get: false, value: 0, coef: 0 },
+        paire: { get: false, value: 0, coef: 0.1 },
+        double_paire: { get: false, value: 0, coef: 0.2 },
+        brelan: { get: false, value: 0, coef: 0.3 },
+        quinte: { get: false, value: 0, coef: 0.5 },
+        couleur: { get: false, value: 0, coef: 0.5 },
+        full: { get: false, value: 0, coef: 0.8 },
+        carre: { get: false, value: 0, coef: 1 },
+        quinte_flush: { get: false, value: 0, coef: 1 },
+        quinte_royale: { get: false, value: 0, coef: 1 },
+    }
+
+    this.cards = []
+
+    this.nb_as = 0
 }
 
 Cards.prototype.clone_card = function(card) {
@@ -66,7 +90,7 @@ Cards.prototype.get_color = function (card) { return card.color }
 
 
 Cards.prototype.check_colors = function (cards, hands) {
-    this.log("check_colors")
+    //this.log("check_colors")
 
     var couleurs = { DIAMOND: [], SPADE: [], HEART: [], CLUB: [] }
     var d = 0
@@ -127,7 +151,7 @@ Cards.prototype.check_colors = function (cards, hands) {
 }
 
 Cards.prototype.check_same = function (cards, hands) {
-    this.log("check_same")
+    //this.log("check_same")
 
     var identiques = [
         [cards[this.nb_as]]
@@ -196,7 +220,7 @@ Cards.prototype.check_same = function (cards, hands) {
 }
 
 Cards.prototype.check_suites = function(cards, hands) {
-    this.log("check_suites")
+    //this.log("check_suites")
 
     var suites = [
         [cards[0]]
@@ -261,8 +285,8 @@ Cards.prototype.check_hand = function() {
         
     // Carte
     case 0:
-        if(nb_cards <= 2) { coef = 0.15 }
-        if(nb_cards == 3) { coef = 0.1 }
+        if(nb_cards <= 2) { coef = 0.05 }
+        if(nb_cards == 3) { coef = 0 }
         if(nb_cards == 4) { coef = 0 }
         if(nb_cards == 5) { coef = 0 }
         if(nb_cards == 6) { coef = 0 }
@@ -271,30 +295,29 @@ Cards.prototype.check_hand = function() {
     
     // Paire
     case 0.1:
-        if(nb_cards == 2) { coef = 0.3 }
-        if(nb_cards == 3) { coef = 0.3 }
-        if(nb_cards == 4) { coef = 0.15 }
-        if(nb_cards == 5) { coef = 0.1 }
-        if(nb_cards == 6) { coef = 0.1 }
-        if(nb_cards >= 7) { coef = 0.1 }
+        if(nb_cards == 2) { coef = 0.15 }
+        if(nb_cards == 3) { coef = 0.1 }
+        if(nb_cards == 4) { coef = 0.07 }
+        if(nb_cards == 5) { coef = 0.05 }
+        if(nb_cards == 6) { coef = 0 }
+        if(nb_cards >= 7) { coef = 0 }
         break
 
     // Double paire
     case 0.2:
-        if(nb_cards == 3) { coef = 0.3 }
-        if(nb_cards == 4) { coef = 0.3 }
-        if(nb_cards == 5) { coef = 0.2 }
-        if(nb_cards == 6) { coef = 0.2 }
-        if(nb_cards >= 7) { coef = 0.2 }
+        if(nb_cards == 4) { coef = 0.2 }
+        if(nb_cards == 5) { coef = 0.17 }
+        if(nb_cards == 6) { coef = 0.15 }
+        if(nb_cards >= 7) { coef = 0.1 }
         break
 
     // Brelan
     case 0.3:
         if(nb_cards == 3) { coef = 0.5 }
         if(nb_cards == 4) { coef = 0.4 }
-        if(nb_cards == 5) { coef = 0.3 }
+        if(nb_cards == 5) { coef = 0.2 }
         if(nb_cards == 6) { coef = 0.2 }
-        if(nb_cards >= 7) { coef = 0.2 }
+        if(nb_cards >= 7) { coef = 0.15 }
         break
 
     // Quinte ou couleur
@@ -315,12 +338,12 @@ Cards.prototype.check_hand = function() {
         break;
 }
 
-    console.log(this.cards)
-    console.log(this.hands)
-    console.log(coef)
-    console.log(coef * mult)
+    this.log(this.cards)
+    this.log(this.hands)
+    this.log(coef)
+    this.log(coef * mult)
 
-    return coef * mult
+    return coef * mult * this.config.aggressivite
 }
 
 

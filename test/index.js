@@ -121,7 +121,7 @@ function test_assert_not(params, cb) {
     params.forEach(p => {
         var mycards = p.cards
         var types_not = difference(TYPES, p.types)
-        var cards = new Cards({ debug: false })
+        var cards = new Cards({ debug: true })
 
         mycards.forEach(c => cards.add_card(c))
         cards.check_hand()
@@ -171,7 +171,7 @@ function test_assert(params, cb) {
     params.forEach(p => {
         var mycards = p.cards
         var types = p.types
-        var cards = new Cards({ debug: false })
+        var cards = new Cards({ debug: true })
 
         mycards.forEach(c => cards.add_card(c))
         cards.check_hand()

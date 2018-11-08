@@ -1,13 +1,18 @@
-module.exports = function(config) {
+module.exports = Player
+
+
+
+function Player(cards, config) {
 
     /* Load default configuration file */
     if(!config) { var config = require ('./config.json'); }
     
     process.env.PORT = config.localport
- 
+
+
     var net = require("net")
     var socket = new net.Socket()
-    var cards = require('../cards')
+ 
     
     function log(type, message){ 
         if(config.debug){ 
@@ -34,6 +39,7 @@ module.exports = function(config) {
     // Bidouille de Kevin
     const ERROR_REGEX = /^Unexpected token { in JSON at position (\d+)$/;
     function decoup(message_brut, cb) {
+        //console.log(message_brut)
         jsonMultiParse(message_brut, [], function(messages) {
             cb(messages)
         })
@@ -72,9 +78,10 @@ module.exports = function(config) {
             hand: { 
                 id: 0,          // numéro de la main
                 turn: 0,        // numéro du tour de la main
+                allin: false,   // tapis en cours
             },
             dealer: null,       // id du donneur
-            mise_en_cours: 0,      // Dernière mise des joueurs
+            mise_en_cours: 0,   // Dernière mise des joueurs
             blind: { 
                 small: 0,       // Valeur de la blind
                 big: 0          // Valeur de la blind
@@ -85,32 +92,43 @@ module.exports = function(config) {
             id: null,           // id du joueur
             chips: 0,           // tapis du joueur
             mise_en_cours: 0,        // Mise en cours
-            mise_totale: 0,
             coef: 0.15,               // ce que je suis prêt à miser
         }
     
         
         // Formatage du message à envoyer au serveur
-        this._play = (value) => '{ "id": "client.game.player.play", "data": { "value": ' + parseInt(value) + ' } }'
-        
+        this._play = (value) => {
+            this.player.mise_en_cours = parseInt(value)
+            return '{ "id": "client.game.player.play", "data": { "value": ' + parseInt(value) + ' } }'
+        }
         // Les actions possibles du joueur
         this.action = {}
         this.action.mise = (value) => {
-            var a_miser = parseInt(this.game.mise_en_cours - this.player.mise_en_cours) + value
+            var a_miser = parseInt(this.game.mise_en_cours) + value
+
             if(a_miser > this.player.chips) {
                 a_miser = this.player.chips
             }
-            if(a_miser < this.game.blind.big) {
+            else if(a_miser < this.game.blind.big) {
                 a_miser = this.game.blind.big
             }
-            if(this.player.chips < this.game.blind.big) {
+            else if(this.player.chips < this.game.blind.big || a_miser < this.game.mise_en_cours) {
                 a_miser = 0
             }
             return this._play(a_miser)
         }
-        this.action.aligne = () => { return this.action.mise(0) }
-        this.action.couche = () => { return this._play(0) }
-        this.action.tapis = () => { return this._play(this.player.chips) }
+        this.action.aligne = () => {
+            return this.action.mise(0) 
+        }
+        this.action.couche = () => { 
+            return this._play(0)
+        }
+        this.action.tapis = () => {
+            if(this.game.hand.allin) {
+                return this.mise(0)
+            } 
+            return this._play(this.player.chips) 
+        }
         
     
         var reponse = ((message) => {
@@ -118,52 +136,49 @@ module.exports = function(config) {
             
             switch(message.id) {
                 case 'server.lobby.join.success':
-                    //log("info", config.name + " a rejoint la partie")
                     break
 
                 case 'server.lobby.join.failure':
-                    //log("info", config.name + " rejet. Raison : " + message.data.reason)
                     break
 
                 case 'server.game.start':
-                    //log("info", "Début de la partie")
-                    //log("info", message.data.info)
-                    //log("info", message.data.count + " joueurs")
-                    
                     this.player.id = message.data.info.id
                     this.player.chips = message.data.info.chips
                     this.game.nbPlayers = message.data.count
                     this.game.hand.id = 0
+                    this.game.mise_en_cours = 0
                     log("info", "ID du joueur : " + this.player.id)
                     break
     
                 case 'server.game.player.cards':
-                    //log("info", "Réception des cartes")
-                    //log("info", message.data.cards)
-                    cards = new cards()
+                    //cards = new Cards()
                     cards.add_cards(message.data.cards)
-                    cards.check_hand()
+                    this.player.coef = cards.check_hand()
                     break
         
                 case 'server.game.hand.start':
+                    cards.reset()
+                    console.log("reset")
                     this.game.hand.id++
                     this.game.hand.turn = 0
+                    this.game.hand.allin = false
+                    this.game.mise_en_cours = 0
                     log("info", "Une nouvelle main commence : " + this.game.hand.id)
-                    //log("info", "Liste des joueurs : ")
                     //log("info", message.data.players)
-                    //log("info", "Dealer : " + message.data.dealer)
                     // sorted by turn
                     this.game.players = message.data.players
                     this.game.dealer = message.data.dealer
 
                     // Récupération de la valeur du tapis du joueur
                     this.game.players.forEach(p => {
+                        log("info", p.id + " = " + this.player.id)
                         if(p.id == this.player.id){
                             this.player.chips = p.chips
+                            log("info", "Nouveau chips : " + this.player.chips)
                         }
                     });
 
-                    this.player.en_cours = 0
+                    this.player.mise_en_cours = 0
                     
                     break
                 
@@ -185,16 +200,20 @@ module.exports = function(config) {
 
                 case 'server.game.player.play':
                     //log("info", "Le joueur doit indiquer son coup")
-                    //TODO: verif si all-in en cours
                     var my_action = ""
                     var a_miser = this.player.coef * this.player.chips
-                    var reste_a_miser = a_miser - this.player.en_cours
+                    var reste_a_miser = a_miser - this.player.mise_en_cours
+
+                    console.log(a_miser + " " + this.player.mise_en_cours + " " + reste_a_miser)
                     
                     if(this.player.coef == 0) {
                         my_action = this.action.couche()
                     }
                     else if(this.player.coef >= 0.9) {
-                        if(reste_a_miser > 0.25 * a_miser) {
+                        if(this.game.hand.allin) {
+                            my_action = this.action.tapis()
+                        }
+                        else if(reste_a_miser > 0.25 * a_miser) {
                             my_action = this.action.mise(100)
                         }
                         else {
@@ -218,15 +237,9 @@ module.exports = function(config) {
                             }
                         }
                     }
-                    console.log(this.player.coef)
-                    console.log(my_action)
+                    log(this.player.coef)
                     log("player", my_action)
                     socket.write(my_action)
-
-
-                    var my_action_json = JSON.parse(my_action)
-                    this.player.mise_totale += my_action_json.data.value
-                    this.player.mise_en_cours = my_action_json.data.value
 
                     break
                 
@@ -250,7 +263,20 @@ module.exports = function(config) {
                 
                 case 'server.game.player.action':
                     //log("info", "Coup valide du joueur " + message.data.id + ", mise : " + message.data.value)
-                    this.game.mise_en_cours = message.data.value
+                    if(message.data.value > this.game.mise_en_cours) {
+                        this.game.mise_en_cours = message.data.value
+                    }
+                    if(!this.game.hand.allin) {
+                        this.game.players.forEach(p => {
+                            if(p.id == message.data.id){
+                                if(p.state != "0") { console.log("ERREUR DU SERVEUR : le joueur " + p.id + " est inactif !!!") }
+                                p.chips -= message.data.value
+                                if(p.chips <= 0) {
+                                    this.game.hand.allin = true
+                                }
+                            }
+                        })
+                    }
                     
                     break
 
@@ -290,7 +316,5 @@ module.exports = function(config) {
     })
 
 
-    /* module */
-    return this
 }
 

@@ -1,0 +1,40 @@
+[object Object],[object Object]
+[object Object]
+0.15
+0.1714285714285714
+[object Object],[object Object],[object Object]
+[object Object]
+0.15
+0.18
+[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+[object Object]
+0.1
+0.11857142857142858
+[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+[object Object]
+1
+1.1857142857142857
+[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+[object Object]
+1
+1.1857142857142857
+[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+[object Object]
+1
+1.1857142857142857
+[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+[object Object]
+1
+1.1857142857142857
+[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object],[object Object]
+[object Object]
+1
+1.1857142857142857
+[object Object],[object Object]
+[object Object]
+0.15
+0.1757142857142857
+[object Object],[object Object]
+[object Object]
+0.15
+0.165
