@@ -1,9 +1,26 @@
 var assert = require('assert')
 var Cards = require('../cards')
 
+var cards = new Cards({ debug: true })
+
+const I_CARTE = 0
+const I_PAIRE = 1
+const I_D_PAIRE = 2
+const I_BRELAN = 3
+const I_QUINTE = 4
+const I_COULEUR = 5
+const I_FULL = 6
+const I_CARRE = 7
+const I_QUINTE_F = 8
+const I_QUINTE_R = 9
+
+const I_GET = 0
+const I_VALUE = 1
+const I_COEF = 2
 
 
-const TYPES = [ "carte", "paire", "double_paire", "brelan", "quinte", "couleur", "full", "carre", "quinte_flush", "quinte_royale" ]
+
+const TYPES = [ I_CARTE, I_PAIRE, I_D_PAIRE, I_BRELAN, I_QUINTE, I_COULEUR, I_FULL, I_CARRE, I_QUINTE_F, I_QUINTE_R ]
 
 const tests = [
     { 
@@ -16,7 +33,7 @@ const tests = [
             { color: 'SPADE', kind: '10' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ "carte", "paire", "quinte"]
+        types: [ I_CARTE, I_PAIRE, I_QUINTE]
     },
 
     { 
@@ -29,7 +46,7 @@ const tests = [
             { color: 'SPADE', kind: '10' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ "carte", "paire", "double_paire", "brelan", "full" ]
+        types: [ I_CARTE, I_PAIRE, I_BRELAN, I_FULL ]
     },
 
     { 
@@ -42,7 +59,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ "carte", "paire", "double_paire", "brelan", "full", "carre"]
+        types: [ I_CARTE, I_PAIRE, I_CARRE]
     },
 
     { 
@@ -55,7 +72,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ "carte", "paire", "quinte"]
+        types: [ I_CARTE, I_PAIRE, I_QUINTE]
     },
 
     { 
@@ -68,7 +85,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ "carte", "paire", "quinte", "couleur", "quinte_flush"]
+        types: [ I_CARTE, I_PAIRE, I_QUINTE, I_COULEUR, I_QUINTE_F]
     },
     { 
         cards: [ 
@@ -80,7 +97,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ "carte", "couleur"]
+        types: [ I_CARTE, I_COULEUR]
     },
     { 
         cards: [ 
@@ -92,7 +109,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "10"},
         ], 
-        types: [ "carte", "quinte", "couleur", "quinte_flush", "quinte_royale" ]
+        types: [ I_CARTE, I_QUINTE, I_COULEUR, I_QUINTE_F, I_QUINTE_R ]
     },
     { 
         cards: [ 
@@ -104,113 +121,54 @@ const tests = [
             { color: 'SPADE', kind: '1' },
             { color: "SPADE", kind: "10"},
         ], 
-        types: [ "carte", "quinte", "couleur" ]
+        types: [ I_CARTE, I_QUINTE, I_COULEUR ]
     },
     { 
         cards: [ 
             { color: "DIAMOND", kind: "1" },    
             { color: 'SPADE', kind: '1' },
         ], 
-        types: [ "carte", "paire" ]
+        types: [ I_PAIRE ]
     },
 ]
 
 const difference = (arr1, arr2) => arr1.filter(x => !arr2.includes(x))
 
-function test_assert_not(params, cb) {
-    params.forEach(p => {
-        var mycards = p.cards
-        var types_not = difference(TYPES, p.types)
-        var cards = new Cards({ debug: true })
+function test_assert_not(tests, cb) {
+    tests.forEach(test => {
+        var mycards = test.cards
+        var types_not = difference(TYPES, test.types)
 
+        cards.reset()
         mycards.forEach(c => cards.add_card(c))
         cards.check_hand()
 
-        types_not.forEach(t => {
-            switch (t) {
-                case "carte":
-                    assert(!cards.hands.carte.get, "not " + t)
-                    break       
-                case "paire":
-                    assert(!cards.hands.paire.get, "not " + t)
-                    break
-                case "double_paire":
-                    assert(!cards.hands.double_paire.get, "not " + t)
-                    break
-                case "brelan":
-                    assert(!cards.hands.brelan.get, "not " + t)
-                    break
-                case "quinte":
-                    assert(!cards.hands.quinte.get, "not " + t)
-                    break
-                case "couleur":
-                    assert(!cards.hands.couleur.get, "not " + t)
-                    break
-                case "full":
-                    assert(!cards.hands.full.get, "not " + t)
-                    break
-                case "carre":
-                    assert(!cards.hands.carre.get, "not " + t)
-                    break
-                case "quinte_flush":
-                    assert(!cards.hands.quinte_flush.get, "not " + t)
-                    break
-                case "quinte_royale":
-                    assert(!cards.hands.quinte_royale.get, "not " + t)
-                    break
-                default:
-                    break;
-            }
+        cards.log_cards()
+        cards.log_hand()
+
+        types_not.forEach(type => {
+            assert(!cards.hands[type][I_GET], "not " + type)
         })
     })
 
     cb()
 }
 
-function test_assert(params, cb) {
-    params.forEach(p => {
-        var mycards = p.cards
-        var types = p.types
-        var cards = new Cards({ debug: true })
-
+function test_assert(tests, cb) {
+    tests.forEach(test => {
+        var mycards = test.cards
+        var types = test.types
+        
+        cards.reset()
         mycards.forEach(c => cards.add_card(c))
         cards.check_hand()
+        
+        cards.log_cards()
+        cards.log_hand()
 
-        types.forEach(t => {
-            switch (t) {
-                case "carte":
-                    assert(cards.hands.carte.get, t)
-                    break       
-                case "paire":
-                    assert(cards.hands.paire.get, t)
-                    break
-                case "double_paire":
-                    assert(cards.hands.double_paire.get, t)
-                    break
-                case "brelan":
-                    assert(cards.hands.brelan.get, t)
-                    break
-                case "quinte":
-                    assert(cards.hands.quinte.get, t)
-                    break
-                case "couleur":
-                    assert(cards.hands.couleur.get, t)
-                    break
-                case "full":
-                    assert(cards.hands.full.get, t)
-                    break
-                case "carre":
-                    assert(cards.hands.carre.get, t)
-                    break
-                case "quinte_flush":
-                    assert(cards.hands.quinte_flush.get, t)
-                    break
-                case "quinte_royale":
-                    assert(cards.hands.quinte_royale.get, t)
-                    break
-                default:
-                    break;
-            }
+        types.forEach(type => {
+            cards
+            assert(cards.hands[type][I_GET], type)
         })
     })
     
@@ -222,5 +180,4 @@ function test_assert(params, cb) {
 test_assert(tests, function() {
     test_assert_not(tests, () => {})
 })
-
 

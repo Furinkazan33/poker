@@ -1,63 +1,91 @@
 module.exports = Cards
 
+const I_CARTE = 0
+const I_PAIRE = 1
+const I_D_PAIRE = 2
+const I_BRELAN = 3
+const I_QUINTE = 4
+const I_COULEUR = 5
+const I_FULL = 6
+const I_CARRE = 7
+const I_QUINTE_F = 8
+const I_QUINTE_R = 9
+
+const I_GET = 0
+const I_VALUE = 1
+const I_COEF = 2
+
 
 function Cards(config) {
     if(!config) { config = require('./config.json') }
 
     this.config = config
-    
-    this.hands = { 
-        carte: { get: false, value: 0, coef: 0 }, // Je ne joue pas la carte haute
-        paire: { get: false, value: 0, coef: 0.1 },
-        double_paire: { get: false, value: 0, coef: 0.2 },
-        brelan: { get: false, value: 0, coef: 0.3 },
-        quinte: { get: false, value: 0, coef: 0.5 },
-        couleur: { get: false, value: 0, coef: 0.5 },
-        full: { get: false, value: 0, coef: 0.8 },
-        carre: { get: false, value: 0, coef: 1 },
-        quinte_flush: { get: false, value: 0, coef: 1 },
-        quinte_royale: { get: false, value: 0, coef: 1 },
-    }
 
+    this.hands = [ 
+        [false, 0, 0],      // CARTE
+        [false, 0, 0.1],    // PAIRE
+        [false, 0, 0.2],    // D_PAIRE
+        [false, 0, 0.3],    // BRELAN
+        [false, 0, 0.5],    // QUINTE
+        [false, 0, 0.5],    // COULEUR
+        [false, 0, 0.8],    // FULL
+        [false, 0, 1],      // CARRE
+        [false, 0, 1],      // QUINTE_F
+        [false, 0, 1],      // QUINTE_R
+    ]
     this.cards = []
-
     this.nb_as = 0
-
     this.max_suite = 0
-
     this.max_color = 0
+    this.coef = 0.15
 }
 
 
 Cards.prototype.log = function(message) {
     if(this.config.debug) {
         console.log(message)
-        //stream.write(message.toString())
-        //stream.write('\n')
     }
 }
 
-Cards.prototype.reset = function() {
-    this.hands = { 
-        carte: { get: false, value: 0, coef: 0 },
-        paire: { get: false, value: 0, coef: 0.1 },
-        double_paire: { get: false, value: 0, coef: 0.2 },
-        brelan: { get: false, value: 0, coef: 0.3 },
-        quinte: { get: false, value: 0, coef: 0.5 },
-        couleur: { get: false, value: 0, coef: 0.5 },
-        full: { get: false, value: 0, coef: 0.8 },
-        carre: { get: false, value: 0, coef: 1 },
-        quinte_flush: { get: false, value: 0, coef: 1 },
-        quinte_royale: { get: false, value: 0, coef: 1 },
+Cards.prototype.log_hand = function() {
+    var json = {
+        CARTE: { get: this.hands[I_CARTE][I_GET], value: this.hands[I_CARTE][I_VALUE], coef: this.hands[I_CARTE][I_COEF] },
+        PAIRE: { get: this.hands[I_PAIRE][I_GET], value: this.hands[I_PAIRE][I_VALUE], coef: this.hands[I_PAIRE][I_COEF] },    
+        D_PAIRE: { get: this.hands[I_D_PAIRE][I_GET], value: this.hands[I_D_PAIRE][I_VALUE], coef: this.hands[I_D_PAIRE][I_COEF] },    
+        BRELAN: { get: this.hands[I_BRELAN][I_GET], value: this.hands[I_BRELAN][I_VALUE], coef: this.hands[I_BRELAN][I_COEF] },    
+        QUINTE: { get: this.hands[I_QUINTE][I_GET], value: this.hands[I_QUINTE][I_VALUE], coef: this.hands[I_QUINTE][I_COEF] },    
+        COULEUR: { get: this.hands[I_COULEUR][I_GET], value: this.hands[I_COULEUR][I_VALUE], coef: this.hands[I_COULEUR][I_COEF] },    
+        FULL: { get: this.hands[I_FULL][I_GET], value: this.hands[I_FULL][I_VALUE], coef: this.hands[I_FULL][I_COEF] },    
+        CARRE: { get: this.hands[I_CARRE][I_GET], value: this.hands[I_CARRE][I_VALUE], coef: this.hands[I_CARRE][I_COEF] },
+        QUINTE_F: { get: this.hands[I_QUINTE_F][I_GET], value: this.hands[I_QUINTE_F][I_VALUE], coef: this.hands[I_QUINTE_F][I_COEF] },
+        QUINTE_R: { get: this.hands[I_QUINTE_R][I_GET], value: this.hands[I_QUINTE_R][I_VALUE], coef: this.hands[I_QUINTE_R][I_COEF] },
     }
 
+    console.log(json)
+}
+
+Cards.prototype.log_cards = function() {
+    console.log(this.cards)
+}
+
+Cards.prototype.reset = function() {
+    this.hands = [ 
+        [false, 0, 0],      // CARTE
+        [false, 0, 0.1],    // PAIRE
+        [false, 0, 0.2],    // D_PAIRE
+        [false, 0, 0.3],    // BRELAN
+        [false, 0, 0.5],    // QUINTE
+        [false, 0, 0.5],    // COULEUR
+        [false, 0, 0.8],    // FULL
+        [false, 0, 1],      // CARRE
+        [false, 0, 1],      // QUINTE_F
+        [false, 0, 1],      // QUINTE_R
+    ]
     this.cards = []
-
     this.nb_as = 0
-
     this.max_suite = 0
-
     this.max_color = 0
+    this.coef = 0.15
 }
 
 Cards.prototype.clone_card = function(card) {
@@ -97,89 +125,48 @@ Cards.prototype.get_value = function(card) { return card.kind }
 Cards.prototype.get_color = function (card) { return card.color }
 
 
-Cards.prototype.check_colors = function (cards, hands) {
-    //this.log("check_colors")
-
-    var couleurs = { DIAMOND: [], SPADE: [], HEART: [], CLUB: [] }
-    var d = 0
-    var s = 0
-    var h = 0
-    var c = 0
+Cards.prototype.check_colors = function () {
+    var COULEURS = []
+    COULEURS["DIAMOND"] = []
+    COULEURS["SPADE"] = [] 
+    COULEURS["HEART"] = []
+    COULEURS["CLUB"] = []
 
     // Regroupement des couleurs (on ignore les 1)
-    for (let i = this.nb_as; i < cards.length; i++) {
+    for (let i = this.nb_as; i < this.cards.length; i++) {
+        var color = this.get_color(this.cards[i])
+        var value = this.get_value(this.cards[i])
+        
+        COULEURS[color].push(this.cards[i])
 
-        var color = this.get_color(cards[i])
-
-        switch (color) {
-            case "DIAMOND":
-                couleurs.DIAMOND.push(cards[i])
-                d++
-                break
-
-            case "SPADE":
-                couleurs.SPADE.push(cards[i])
-                s++
-                break
-
-            case "HEART":
-                couleurs.HEART.push(cards[i])
-                h++
-                break
-
-            case "CLUB":
-                couleurs.CLUB.push(cards[i])
-                c++
-                break
-
-            default:
-                break;
+        var length = COULEURS[color].length
+        
+        // Vérifications
+        if(length >= 5) {
+            this.hands[I_COULEUR][I_GET] = true
+            this.hands[I_COULEUR][I_VALUE] = value
+        }
+        if(length > this.max_color) { 
+            this.max_color = length
         }
     }
-        
-    // Vérifications
-    if(d >= 5) { 
-        hands.couleur.get = true
-        hands.couleur.value = this.get_value(couleurs.DIAMOND[d - 1]) 
-    }
-    else if(s >= 5) { 
-        hands.couleur.get = true
-        hands.couleur.value = this.get_value(couleurs.SPADE[s - 1]) 
-    }
-    else if(h >= 5) { 
-        hands.couleur.get = true
-        hands.couleur.value = this.get_value(couleurs.HEART[h - 1]) 
-    }
-    else if(c >= 5) { 
-        hands.couleur.get = true
-        hands.couleur.value = this.get_value(couleurs.CLUB[c - 1]) 
-    } 
-
-    if(d > this.max_color) { this.max_color = d}
-    if(s > this.max_color) { this.max_color = s}
-    if(h > this.max_color) { this.max_color = h}
-    if(c > this.max_color) { this.max_color = c}
-
-    return hands
 }
 
-Cards.prototype.check_same = function (cards, hands) {
-    //this.log("check_same")
-
+Cards.prototype.check_same = function () {
     var identiques = [
-        [cards[this.nb_as]]
+        [this.cards[this.nb_as]]
     ]
     
     // Constitution de la liste des cartes identiques (on ignore les 1)
-    for (let i = this.nb_as, s = 0; i < cards.length - 1; i++) {
+    for (let i = this.nb_as, s = 0; i < this.cards.length - 1; i++) {
         
-        var diff = this.get_value(cards[i+1]) - this.get_value(cards[i])
+        var diff = this.get_value(this.cards[i+1]) - this.get_value(this.cards[i])
 
         if(diff != 0) {
             s++
             identiques.push([])
         }
-        identiques[s].push(cards[i+1])
+        identiques[s].push(this.cards[i+1])
     }
 
     // Vérifications
@@ -187,68 +174,64 @@ Cards.prototype.check_same = function (cards, hands) {
         var length = identiques[i].length
         var value = this.get_value(identiques[i][0])
 
-        if(length >= 1) {
-            hands.carte.get = true
-            if (value > hands.carte.value) {
-                hands.carte.value = value
+        if(length == 1) {
+            this.hands[I_CARTE][I_GET] = true
+            if (value > this.hands[I_CARTE][I_VALUE]) {
+                this.hands[I_CARTE][I_VALUE] = value
             } 
         }
-        if(length >= 2) {
+        if(length == 2) {
             // Double paire
-            if(hands.paire.get) { 
-                hands.double_paire.get = true 
+            if(this.hands[I_PAIRE][I_GET]) { 
+                this.hands[I_D_PAIRE][I_GET] = true 
                 
-                if (value > hands.double_paire.value) {
-                    hands.double_paire.value = value
+                if (value > this.hands[I_D_PAIRE][I_VALUE]) {
+                    this.hands[I_D_PAIRE][I_VALUE] = value
                 }
             }
             // Paire
-            hands.paire.get = true
+            this.hands[I_PAIRE][I_GET] = true
             
-            if (value > hands.paire.value) {
-                hands.paire.value = value
+            if (value > this.hands[I_PAIRE][I_VALUE]) {
+                this.hands[I_PAIRE][I_VALUE] = value
             } 
         }
-        if(length >= 3) { 
+        if(length == 3) { 
             // Brelan
-            hands.brelan.get = true
+            this.hands[I_BRELAN][I_GET] = true
             
-            if (value > hands.brelan.value) {
-                hands.brelan.value = value
+            if (value > this.hands[I_BRELAN][I_VALUE]) {
+                this.hands[I_BRELAN][I_VALUE] = value
             }
         }
-        if(length >= 4) { 
+        if(length == 4) { 
             // Carré
-            hands.carre.get = true
-            hands.carre.value = value
+            this.hands[I_CARRE][I_GET] = true
+            this.hands[I_CARRE][I_VALUE] = value
         }
     }
     // Full
-    if(hands.brelan.get && hands.paire.get && hands.brelan.value != hands.paire.value) {
-        hands.full.get = true
-        hands.full.value = hands.brelan.value
+    if(this.hands[I_BRELAN][I_GET] && this.hands[I_PAIRE][I_GET] && this.hands[I_BRELAN][I_VALUE] != this.hands[I_PAIRE][I_VALUE]) {
+        this.hands[I_FULL][I_GET] = true
+        this.hands[I_FULL][I_VALUE] = this.hands[I_BRELAN][I_VALUE]
     }
-
-    return hands
 }
 
-Cards.prototype.check_suites = function(cards, hands) {
-    //this.log("check_suites")
-
+Cards.prototype.check_suites = function() {
     var suites = [
-        [cards[0]]
+        [this.cards[0]]
     ]
 
     // Constitution de la liste des suites
-    for (let i = 0, s = 0; i < cards.length - 1; i++) {
-        var diff = this.get_value(cards[i+1]) - this.get_value(cards[i])
+    for (let i = 0, s = 0; i < this.cards.length - 1; i++) {
+        var diff = this.get_value(this.cards[i+1]) - this.get_value(this.cards[i])
 
         if(diff > 1) {
             s++
             suites.push([])
         }
         if(diff != 0) {
-            suites[s].push(cards[i+1])
+            suites[s].push(this.cards[i+1])
         }
     }
     
@@ -259,47 +242,40 @@ Cards.prototype.check_suites = function(cards, hands) {
         if(length > this.max_suite) { this.max_suite = length }
 
         if(length >= 5) {
-            this.log(suites[i])
-            hands.quinte.get = true
-            hands.quinte.value = this.get_value(suites[i][length - 1])
+            this.hands[I_QUINTE][I_GET] = true
+            this.hands[I_QUINTE][I_VALUE] = this.get_value(suites[i][length - 1])
         }
     }
 
-    if(hands.quinte.get && hands.couleur.get && hands.quinte.value == hands.couleur.value) {
-        hands.quinte_flush.get = true
-        hands.quinte_flush.value = hands.quinte.value
+    if(this.hands[I_QUINTE][I_GET] && this.hands[I_COULEUR][I_GET] && this.hands[I_QUINTE][I_VALUE] == this.hands[I_COULEUR][I_VALUE]) {
+        this.hands[I_QUINTE_F][I_GET] = true
+        this.hands[I_QUINTE_F][I_VALUE] = this.hands[I_QUINTE][I_VALUE]
     }
 
-    if(hands.quinte_flush.get && hands.quinte_flush.value == 14) {
-        hands.quinte_royale.get = true
-        hands.quinte_royale.value = 14
+    if(this.hands[I_QUINTE_F][I_GET] && this.hands[I_QUINTE_F][I_VALUE] == 14) {
+        this.hands[I_QUINTE_R][I_GET] = true
+        this.hands[I_QUINTE_R][I_VALUE] = 14
     }
-
-    return hands
 }
     
 Cards.prototype.check_hand = function() {
-    this.hands = this.check_same(this.cards, this.hands)
-    this.hands = this.check_colors(this.cards, this.hands)
-    this.hands = this.check_suites(this.cards, this.hands)
+    this.check_same()
+    this.check_colors()
+    this.check_suites()
 
-    if(this.hands.quinte_royale.get) { coef = this.hands.quinte_royale.coef; mult = 1 + this.hands.quinte_royale.value / 70; }
-    else if(this.hands.quinte_flush.get) { coef = this.hands.quinte_flush.coef; mult = 1 + this.hands.quinte_flush.value / 70; }
-    else if(this.hands.carre.get) { coef = this.hands.carre.coef; mult = 1 + this.hands.carre.value / 70;  }
-    else if(this.hands.full.get) { coef = this.hands.full.coef; mult = 1 + this.hands.full.value / 70;  }
-    else if(this.hands.couleur.get) { coef = this.hands.couleur.coef; mult = 1 + this.hands.couleur.value / 70;  }
-    else if(this.hands.quinte.get) { coef = this.hands.quinte.coef; mult = 1 + this.hands.quinte.value / 70;  }
-    else if(this.hands.brelan.get) { coef = this.hands.brelan.coef; mult = 1 + this.hands.brelan.value / 70;  }
-    else if(this.hands.double_paire.get) { coef = this.hands.double_paire.coef; mult = 1 + this.hands.double_paire.value / 70;  }
-    else if(this.hands.paire.get) { coef = this.hands.paire.coef; mult = 1 + this.hands.paire.value / 70;  }
-    else if(this.hands.carte.get) { coef = this.hands.carte.coef; mult = 1 + this.hands.carte.value / 70;  }
+    for (var i = this.hands.length - 1; i >= 0; i--) {
+        if(this.hands[i][I_GET]) { 
+            coef = this.hands[i][I_COEF]; 
+            mult = 1 + this.hands[i][I_VALUE] / 70;
+            break 
+        }
+    }
 
     var nb_cards = this.cards.length - this.nb_as
 
-    switch (coef) {
+    switch (i) {
         
-    // Carte
-    case 0:
+        case I_CARTE:
         if(nb_cards <= 2) { coef = 0.05 }
         if(nb_cards == 3) { 
             coef = 0; 
@@ -331,9 +307,8 @@ Cards.prototype.check_hand = function() {
         }
         if(nb_cards >= 7) { coef = 0 }
         break
-    
-    // Paire
-    case 0.1:
+        
+        case I_PAIRE:
         if(nb_cards == 2) { 
             coef = 0.15
         }
@@ -374,16 +349,14 @@ Cards.prototype.check_hand = function() {
         }
         break
 
-    // Double paire
-    case 0.2:
+        case I_D_PAIRE:
         if(nb_cards == 4) { coef = 0.2 }
         if(nb_cards == 5) { coef = 0.17 }
         if(nb_cards == 6) { coef = 0.15 }
         if(nb_cards >= 7) { coef = 0.1 }
         break
 
-    // Brelan
-    case 0.3:
+        case I_BRELAN:
         if(nb_cards == 3) { coef = 0.5 }
         if(nb_cards == 4) { coef = 0.4 }
         if(nb_cards == 5) { coef = 0.2 }
@@ -391,30 +364,27 @@ Cards.prototype.check_hand = function() {
         if(nb_cards >= 7) { coef = 0.15 }
         break
 
-    // Quinte ou couleur
-    case 0.5:
+        case I_QUINTE, I_COULEUR:
         if(nb_cards == 5) { coef = 1 }
         if(nb_cards == 6) { coef = 0.8 }
         if(nb_cards >= 7) { coef = 0.5 }
         break
 
-    // Full
-    case 0.8:
+        case I_FULL:
         if(nb_cards == 5) { coef = 1 }
         if(nb_cards == 6) { coef = 1 }
         if(nb_cards >= 7) { coef = 0.8 }
         break
 
-    default:
-        break;
+        case I_CARRE, I_QUINTE_F, I_QUINTE_R:
+        break
+            
+        default:
+        break
+    }
+
+    this.coef = coef * mult
+
+    this.log("coef: " + coef + " * " + mult + " = " + this.coef)
 }
-
-    this.log(this.cards)
-    this.log(this.hands)
-    this.log(coef)
-    this.log(coef * mult)
-
-    return coef * mult * this.config.aggressivite
-}
-
 

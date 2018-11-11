@@ -92,7 +92,8 @@ function Player(cards, config) {
             id: null,           // id du joueur
             chips: 0,           // tapis du joueur
             mise_en_cours: 0,        // Mise en cours
-            coef: 0.15,               // ce que je suis prêt à miser
+            coef: 0.15,
+            aggressivite: config.aggressivite,
         }
     
         
@@ -125,7 +126,7 @@ function Player(cards, config) {
         }
         this.action.tapis = () => {
             if(this.game.hand.allin) {
-                return this.mise(0)
+                return this.action.mise(0)
             } 
             return this._play(this.player.chips) 
         }
@@ -153,7 +154,8 @@ function Player(cards, config) {
                 case 'server.game.player.cards':
                     //cards = new Cards()
                     cards.add_cards(message.data.cards)
-                    this.player.coef = cards.check_hand()
+                    cards.check_hand()
+                    this.player.coef = this.player.aggressivite * cards.coef
                     break
         
                 case 'server.game.hand.start':
@@ -236,7 +238,6 @@ function Player(cards, config) {
                             }
                         }
                     }
-                    //log(this.player.coef)
                     log("player", my_action)
                     socket.write(my_action)
 
@@ -283,8 +284,8 @@ function Player(cards, config) {
                 case 'server.game.board.cards':
                     //log("info", "Nouvelles cartes ajoutées sur le tapis")
                     cards.add_cards(message.data.cards)
-                    this.player.coef = cards.check_hand()
-
+                    cards.check_hand()
+                    this.player.coef = this.player.aggressivite * cards.coef
                     break
 
                 case 'server.game.hand.end':
