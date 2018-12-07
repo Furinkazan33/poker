@@ -6,7 +6,7 @@ var logger = require('morgan');
 var app = express();
 app.use(logger(env));
 var Player = require('./player')
-var Cards = require('./cards')
+var Cards = require('./cards').default
 
 var player = new Player(new Cards(), {
     "debug": false,
@@ -32,7 +32,7 @@ var player3 = new Player(new Cards(), {
     "host": "localhost", "port": 4000
 })
 
-var player3 = new Player(new Cards(), {
+var player4 = new Player(new Cards(), {
     "debug": false,
     "name": "P4",
     "aggressivite": 2,
@@ -40,6 +40,13 @@ var player3 = new Player(new Cards(), {
     "host": "localhost", "port": 4000
 })
 
+var players = [ player, player2, player3, player4 ]
+
+players.forEach(player => {
+    player.connect(function() {
+        player.start_playing()
+    })    
+})
 
 
 module.exports = app;
