@@ -1,7 +1,0 @@
-{
-    "debug": false,
-    "name": "Les cannards loqués",
-    "aggressivite": 1.5,
-    "localport": 3001,
-    "host": "localhost", "port": 1300
-}
