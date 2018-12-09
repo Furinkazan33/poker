@@ -2,42 +2,8 @@
 
 var net = require("net")
 
-const MESSAGE = { 
-    CLIENT: {
-        JOIN: 'client.lobby.join',
-        PLAY: 'client.game.player.play',
-    },
-    SERVER: {
-        LOBBY: {
-            JOIN: { 
-                SUCCESS: 'server.lobby.join.success',
-                FAILURE: 'server.LOBBY.join.failure',
-            },
-        },
-        GAME: {
-            START: 'server.game.start',
-            END: 'server.game.end',
-            HAND: {
-                START: 'server.game.hand.start',
-                END: 'server.game.hand.end',
-            },
-            BLIND_CHANGE: 'server.game.blind.change',
-            TURN: { 
-                START: 'server.game.turn.start',
-                END: 'server.game.turn.end',
-            },
-            PLAYER: {
-                CARDS: 'server.game.player.cards',
-                PLAY: 'server.game.player.play',
-                PLAY_TIMEOUT: 'server.game.player.play.timeout',
-                PLAY_SUCCESS: 'server.game.player.play.success',
-                PLAY_FAILURE: 'server.game.player.play.failure',
-                ACTION: 'server.game.player.action',
-            },
-            BOARD_CARDS: 'server.game.board.cards',
-        }
-    }
-}
+import default_config from './config.json'
+import MESSAGE from './messages.json'
 
 // Bidouille de Kevin
 const ERROR_REGEX = /^Unexpected token { in JSON at position (\d+)$/;
@@ -68,51 +34,54 @@ function jsonMultiParse(input, acc, cb) {
 }
 
 module.exports = class Player {
-    constructor(cards, config) {
-        if(!config) { 
-            config = require ('./config.json')
-        }
+    config = default_config
+    cards = null
+    socket = null
+    game = null
+    player = null
 
-        this.config = config
+    constructor(cards, config?) {
+        if(config) { this.config = config }
+
         this.cards = cards
     
-        process.env.PORT = this.config.localport
+        process.env.PORT = this.config.localport.toString()
 
         this.socket = new net.Socket()
     }
 
     log(type, message){ 
-        if(config.debug){ 
+        if(this.config.debug){ 
             switch (type) {
                 case "server":
                     console.log("SERVEUR : %j", message)
-                    break;
+                    break
             
                 case "player":
-                    console.log(config.name + " : " + message)
-                break;
+                    console.log(this.config.name + " : " + message)
+                break
             
                 case "info":
                     console.log("INFO : " + message)
-                break;
+                break
 
                 default:
-                    break;
+                    break
             }
             
         }
     }
 
     connect(cb) {
-        this.socket.connect(config.port, config.host, function() {
-            log("info", config.name + " connected to server with port " + config.localport);  
+        this.socket.connect(this.config.port, this.config.host, (function() {
+            this.log("info", this.config.name + " connected to server with port " + this.config.localport);  
         
-            var message = '{ "id": "' + MESSAGE.CLIENT.JOIN + '", "data": { "name": "' + config.name + '" } }'
-            log("player", message)
+            var message = '{ "id": "' + MESSAGE.CLIENT.JOIN + '", "data": { "name": "' + this.config.name + '" } }'
+            this.log("player", message)
             this.socket.write(message)
 
             cb()
-        })
+        }).bind(this))
     }
 
     init_game() {
@@ -150,7 +119,7 @@ module.exports = class Player {
         this.game.hand.id = 0
         this.game.mise_en_cours = 0
 
-        log("info", "ID du joueur : " + this.player.id)
+        this.log("info", "ID du joueur : " + this.player.id)
     }
 
     new_cards(new_cards) {
@@ -165,17 +134,17 @@ module.exports = class Player {
         this.game.hand.turn = 0
         this.game.hand.allin = false
         this.game.mise_en_cours = 0
-        log("info", "Une nouvelle main commence : " + this.game.hand.id)
+        this.log("info", "Une nouvelle main commence : " + this.game.hand.id)
 
         this.game.players = players
         this.game.dealer = dealer
 
         // Récupération de la valeur du tapis du joueur
         this.game.players.forEach(p => {
-            log("info", p.id + " = " + this.player.id)
+            this.log("info", p.id + " = " + this.player.id)
             if(p.id == this.player.id){
                 this.player.chips = p.chips
-                log("info", "Nouveau chips : " + this.player.chips)
+                this.log("info", "Nouveau chips : " + this.player.chips)
             }
         })
 
@@ -183,13 +152,13 @@ module.exports = class Player {
     }
     
     // Formatage du message à envoyer au serveur
-    _play = (value) => {
+    _message_client_play(value) {
         this.player.mise_en_cours = parseInt(value)
         return '{ "id": "' + MESSAGE.CLIENT.PLAY + '", "data": { "value": ' + parseInt(value) + ' } }'
     }
 
     // Les actions possibles du joueur
-    action(type, value) {
+    action(type, value?) {
         switch (type) {
             case "mise":
                 var a_miser = parseInt(this.game.mise_en_cours) + value
@@ -203,30 +172,24 @@ module.exports = class Player {
                 else if(this.player.chips < this.game.blind.big || a_miser < this.game.mise_en_cours) {
                     a_miser = 0
                 }
-                return _play(a_miser)        
-                
-                break
+                return this._message_client_play(a_miser)        
         
             case "aligne":
-                return action("mise", 0)
-                break
+                return this.action("mise", 0)
 
             case "couche":
-                return _play(0)
-                break
+                return this._message_client_play(0)
 
             case "tapis":
                 if(this.game.hand.allin) {
-                    return action("mise", 0)
+                    return this.action("mise", 0)
                 } 
-                return _play(this.player.chips) 
-                break
+                return this._message_client_play(this.player.chips) 
 
             default:
-                break
+                throw Error
         }
     }
-
 
     play() {
         var a_miser = this.player.coef * this.player.chips
@@ -287,7 +250,7 @@ module.exports = class Player {
     }
 
     treat_server_message(message) {
-        log("server", message)
+        this.log("server", message)
         
         switch(message.id) {
             case MESSAGE.SERVER.LOBBY.JOIN.SUCCESS:
@@ -311,40 +274,40 @@ module.exports = class Player {
             
             // Pas dans la spec
             case MESSAGE.SERVER.GAME.BLIND_CHANGE:
-                //log("info", "Nouvelle blind : " + message.data.small + " / " + message.data.big)
+                //this.log("info", "Nouvelle blind : " + message.data.small + " / " + message.data.big)
                 this.game.blind.small = message.data.small
                 this.game.blind.big = message.data.big
                 break
 
             case MESSAGE.SERVER.GAME.TURN.START:
                 this.game.hand.turn++
-                log("info", "Un nouveau tour commence : " + this.game.hand.turn)
+                this.log("info", "Un nouveau tour commence : " + this.game.hand.turn)
                 break
 
             case MESSAGE.SERVER.GAME.TURN.END:
-                //log("info", "Le tour se termine")
+                //this.log("info", "Le tour se termine")
                 break
 
             case MESSAGE.SERVER.GAME.PLAYER.PLAY:
                 var action = this.play()
-                log("player", action)
+                this.log("player", action)
                 this.socket.write(action)
                 break
             
             case MESSAGE.SERVER.GAME.PLAYER.PLAY_TIMEOUT:
-                //log("info", "Le joueur a mis trop de temps avant de répondre")
+                //this.log("info", "Le joueur a mis trop de temps avant de répondre")
 
                 break
 
 
             case MESSAGE.SERVER.GAME.PLAYER.PLAY_SUCCESS:
-                //log("info", "Coup valide et pris en compte")
+                //this.log("info", "Coup valide et pris en compte")
 
                 break
 
             
             case MESSAGE.SERVER.GAME.PLAYER.PLAY_FAILURE:
-                //log("info", "Coup non valide et pas pris en compte")
+                //this.log("info", "Coup non valide et pas pris en compte")
                 this.socket.write(action("mise", 0))
 
                 break
@@ -355,17 +318,17 @@ module.exports = class Player {
                 break
 
             case MESSAGE.SERVER.GAME.HAND.END:
-                //log("info", "Une main se termine")
+                //this.log("info", "Une main se termine")
                 break
 
 
             case MESSAGE.SERVER.GAME.END:
-                //log("info", "Fin de la partie. Gagnant : ")
-                //log("info", message.data.winner)
+                //this.log("info", "Fin de la partie. Gagnant : ")
+                //this.log("info", message.data.winner)
                 break
                 
             default:
-                log("info", 'Erreur du serveur')
+                this.log("info", 'Erreur du serveur')
                 break
         }
     }
@@ -380,7 +343,7 @@ module.exports = class Player {
 
                 messages.forEach(((message) => this.treat_server_message(message)).bind(this))
 
-            }).bind(this), [])
+            }).bind(this))
 
         }).bind(this))
     }
@@ -399,23 +362,23 @@ function Player(cards, config) {
     var socket = new net.Socket()
  
     
-    function log(type, message){ 
+    function this.(type, message){ 
         if(config.debug){ 
             switch (type) {
                 case "server":
                     console.log("SERVEUR : %j", message)
-                    break;
+                    break
             
                 case "player":
                     console.log(config.name + " : " + message)
-                break;
+                break
             
                 case "info":
                     console.log("INFO : " + message)
-                break;
+                break
 
                 default:
-                    break;
+                    break
             }
             
         }

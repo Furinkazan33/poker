@@ -1,5 +1,0 @@
-{
-    "uri": "mongodb+srv://poker:lVRLSJvm7Kiek4cR@cluster0-u1vwx.gcp.mongodb.net/",
-    "base": "test",
-    "options": "?retryWrites=true"
-}

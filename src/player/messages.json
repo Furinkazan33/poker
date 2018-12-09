@@ -1,0 +1,36 @@
+{ 
+    "CLIENT": {
+        "JOIN": "client.lobby.join",
+        "PLAY": "client.game.player.play",
+    },
+    "SERVER": {
+        "LOBBY": {
+            "JOIN": { 
+                "SUCCESS": "server.lobby.join.success",
+                "FAILURE": "server.LOBBY.join.failure",
+            },
+        },
+        "GAME": {
+            "START": "server.game.start",
+            "END": "server.game.end",
+            "HAND": {
+                "START": "server.game.hand.start",
+                "END": "server.game.hand.end",
+            },
+            "BLIND_CHANGE": "server.game.blind.change",
+            "TURN": { 
+                "START": "server.game.turn.start",
+                "END": "server.game.turn.end",
+            },
+            "PLAYER": {
+                "CARDS": "server.game.player.cards",
+                "PLAY": "server.game.player.play",
+                "PLAY_TIMEOUT": "server.game.player.play.timeout",
+                "PLAY_SUCCESS": "server.game.player.play.success",
+                "PLAY_FAILURE": "server.game.player.play.failure",
+                "ACTION": "server.game.player.action",
+            },
+            "BOARD_CARDS": "server.game.board.cards",
+        }
+    }
+}

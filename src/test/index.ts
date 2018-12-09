@@ -1,26 +1,14 @@
+'use strict'
+
 var assert = require('assert')
 var Cards = require('../cards')
 
 var cards = new Cards({ debug: true })
 
-const I_CARTE = 0
-const I_PAIRE = 1
-const I_D_PAIRE = 2
-const I_BRELAN = 3
-const I_QUINTE = 4
-const I_COULEUR = 5
-const I_FULL = 6
-const I_CARRE = 7
-const I_QUINTE_F = 8
-const I_QUINTE_R = 9
-
-const I_GET = 0
-const I_VALUE = 1
-const I_COEF = 2
+import I from '../cards/constants.json'
 
 
-
-const TYPES = [ I_CARTE, I_PAIRE, I_D_PAIRE, I_BRELAN, I_QUINTE, I_COULEUR, I_FULL, I_CARRE, I_QUINTE_F, I_QUINTE_R ]
+const TYPES = [ I.CARTE, I.PAIRE, I.D_PAIRE, I.BRELAN, I.QUINTE, I.COULEUR, I.FULL, I.CARRE, I.QUINTE_F, I.QUINTE_R ]
 
 const tests = [
     { 
@@ -33,7 +21,7 @@ const tests = [
             { color: 'SPADE', kind: '10' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ I_CARTE, I_PAIRE, I_QUINTE]
+        types: [ I.CARTE, I.PAIRE, I.QUINTE]
     },
 
     { 
@@ -46,7 +34,7 @@ const tests = [
             { color: 'SPADE', kind: '10' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ I_CARTE, I_PAIRE, I_BRELAN, I_FULL ]
+        types: [ I.CARTE, I.PAIRE, I.BRELAN, I.FULL ]
     },
 
     { 
@@ -59,7 +47,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ I_CARTE, I_PAIRE, I_CARRE]
+        types: [ I.CARTE, I.PAIRE, I.CARRE]
     },
 
     { 
@@ -72,7 +60,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ I_CARTE, I_PAIRE, I_QUINTE]
+        types: [ I.CARTE, I.PAIRE, I.QUINTE]
     },
 
     { 
@@ -85,7 +73,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ I_CARTE, I_PAIRE, I_QUINTE, I_COULEUR, I_QUINTE_F]
+        types: [ I.CARTE, I.PAIRE, I.QUINTE, I.COULEUR, I.QUINTE_F]
     },
     { 
         cards: [ 
@@ -97,7 +85,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "JACK"},
         ], 
-        types: [ I_CARTE, I_COULEUR]
+        types: [ I.CARTE, I.COULEUR]
     },
     { 
         cards: [ 
@@ -109,7 +97,7 @@ const tests = [
             { color: 'SPADE', kind: '2' },
             { color: "SPADE", kind: "10"},
         ], 
-        types: [ I_CARTE, I_QUINTE, I_COULEUR, I_QUINTE_F, I_QUINTE_R ]
+        types: [ I.CARTE, I.QUINTE, I.COULEUR, I.QUINTE_F, I.QUINTE_R ]
     },
     { 
         cards: [ 
@@ -121,14 +109,14 @@ const tests = [
             { color: 'SPADE', kind: '1' },
             { color: "SPADE", kind: "10"},
         ], 
-        types: [ I_CARTE, I_QUINTE, I_COULEUR ]
+        types: [ I.CARTE, I.QUINTE, I.COULEUR ]
     },
     { 
         cards: [ 
             { color: "DIAMOND", kind: "1" },    
             { color: 'SPADE', kind: '1' },
         ], 
-        types: [ I_PAIRE ]
+        types: [ I.PAIRE ]
     },
 ]
 
@@ -147,7 +135,7 @@ function test_assert_not(tests, cb) {
         cards.log_hand()
 
         types_not.forEach(type => {
-            assert(!cards.hands[type][I_GET], "not " + type)
+            assert(!cards.hands[type][I.GET], "not " + type)
         })
     })
 
@@ -168,7 +156,7 @@ function test_assert(tests, cb) {
 
         types.forEach(type => {
             cards
-            assert(cards.hands[type][I_GET], type)
+            assert(cards.hands[type][I.GET], type)
         })
     })
     

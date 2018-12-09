@@ -1,19 +1,7 @@
 'use strict'
 
-const I_CARTE = 0
-const I_PAIRE = 1
-const I_D_PAIRE = 2
-const I_BRELAN = 3
-const I_QUINTE = 4
-const I_COULEUR = 5
-const I_FULL = 6
-const I_CARRE = 7
-const I_QUINTE_F = 8
-const I_QUINTE_R = 9
-
-const I_GET = 0
-const I_VALUE = 1
-const I_COEF = 2
+import default_config from './config.json'
+import I from './constants.json'
 
 const kind_to_digit = c => c == "1" ? 14 : (c == "JACK" ? 11 : (c == "QUEEN" ? 12 : (c == "KING" ? 13 : parseInt(c))))
 const card_to_digit = card => ({ color: card.color, kind: kind_to_digit(card.kind) })
@@ -23,11 +11,19 @@ const clone_card = card => ({ color: card.color, kind: card.kind })
 
 
 module.exports = class Cards {
+    config = default_config
+    hands = null
+    cards = []
+    nb_as = 0
+    max_suite = 0
+    max_color = 0
+    coef = 0.15
 
-    constructor(config) {
-        if(!config) { config = require('./config.json') }
 
-        this.config = config
+    constructor(config?) {
+        if(config) { this.config = config }
+
+        console.log(this.config)
 
         this.reset()
     }
@@ -60,16 +56,16 @@ module.exports = class Cards {
 
     log_hand () {
         var json = {
-            CARTE: { get: this.hands[I_CARTE][I_GET], value: this.hands[I_CARTE][I_VALUE], coef: this.hands[I_CARTE][I_COEF] },
-            PAIRE: { get: this.hands[I_PAIRE][I_GET], value: this.hands[I_PAIRE][I_VALUE], coef: this.hands[I_PAIRE][I_COEF] },    
-            D_PAIRE: { get: this.hands[I_D_PAIRE][I_GET], value: this.hands[I_D_PAIRE][I_VALUE], coef: this.hands[I_D_PAIRE][I_COEF] },    
-            BRELAN: { get: this.hands[I_BRELAN][I_GET], value: this.hands[I_BRELAN][I_VALUE], coef: this.hands[I_BRELAN][I_COEF] },    
-            QUINTE: { get: this.hands[I_QUINTE][I_GET], value: this.hands[I_QUINTE][I_VALUE], coef: this.hands[I_QUINTE][I_COEF] },    
-            COULEUR: { get: this.hands[I_COULEUR][I_GET], value: this.hands[I_COULEUR][I_VALUE], coef: this.hands[I_COULEUR][I_COEF] },    
-            FULL: { get: this.hands[I_FULL][I_GET], value: this.hands[I_FULL][I_VALUE], coef: this.hands[I_FULL][I_COEF] },    
-            CARRE: { get: this.hands[I_CARRE][I_GET], value: this.hands[I_CARRE][I_VALUE], coef: this.hands[I_CARRE][I_COEF] },
-            QUINTE_F: { get: this.hands[I_QUINTE_F][I_GET], value: this.hands[I_QUINTE_F][I_VALUE], coef: this.hands[I_QUINTE_F][I_COEF] },
-            QUINTE_R: { get: this.hands[I_QUINTE_R][I_GET], value: this.hands[I_QUINTE_R][I_VALUE], coef: this.hands[I_QUINTE_R][I_COEF] },
+            CARTE: { get: this.hands[I.CARTE][I.GET], value: this.hands[I.CARTE][I.VALUE], coef: this.hands[I.CARTE][I.COEF] },
+            PAIRE: { get: this.hands[I.PAIRE][I.GET], value: this.hands[I.PAIRE][I.VALUE], coef: this.hands[I.PAIRE][I.COEF] },    
+            D_PAIRE: { get: this.hands[I.D_PAIRE][I.GET], value: this.hands[I.D_PAIRE][I.VALUE], coef: this.hands[I.D_PAIRE][I.COEF] },    
+            BRELAN: { get: this.hands[I.BRELAN][I.GET], value: this.hands[I.BRELAN][I.VALUE], coef: this.hands[I.BRELAN][I.COEF] },    
+            QUINTE: { get: this.hands[I.QUINTE][I.GET], value: this.hands[I.QUINTE][I.VALUE], coef: this.hands[I.QUINTE][I.COEF] },    
+            COULEUR: { get: this.hands[I.COULEUR][I.GET], value: this.hands[I.COULEUR][I.VALUE], coef: this.hands[I.COULEUR][I.COEF] },    
+            FULL: { get: this.hands[I.FULL][I.GET], value: this.hands[I.FULL][I.VALUE], coef: this.hands[I.FULL][I.COEF] },    
+            CARRE: { get: this.hands[I.CARRE][I.GET], value: this.hands[I.CARRE][I.VALUE], coef: this.hands[I.CARRE][I.COEF] },
+            QUINTE_F: { get: this.hands[I.QUINTE_F][I.GET], value: this.hands[I.QUINTE_F][I.VALUE], coef: this.hands[I.QUINTE_F][I.COEF] },
+            QUINTE_R: { get: this.hands[I.QUINTE_R][I.GET], value: this.hands[I.QUINTE_R][I.VALUE], coef: this.hands[I.QUINTE_R][I.COEF] },
         }
 
         console.log(json)
@@ -124,8 +120,8 @@ module.exports = class Cards {
             
             // Vérifications
             if(length >= 5) {
-                this.hands[I_COULEUR][I_GET] = true
-                this.hands[I_COULEUR][I_VALUE] = value
+                this.hands[I.COULEUR][I.GET] = true
+                this.hands[I.COULEUR][I.VALUE] = value
             }
             if(length > this.max_color) { 
                 this.max_color = length
@@ -156,45 +152,45 @@ module.exports = class Cards {
             var value = get_value(identiques[i][0])
 
             if(length == 1) {
-                this.hands[I_CARTE][I_GET] = true
-                if (value > this.hands[I_CARTE][I_VALUE]) {
-                    this.hands[I_CARTE][I_VALUE] = value
+                this.hands[I.CARTE][I.GET] = true
+                if (value > this.hands[I.CARTE][I.VALUE]) {
+                    this.hands[I.CARTE][I.VALUE] = value
                 } 
             }
             if(length == 2) {
                 // Double paire
-                if(this.hands[I_PAIRE][I_GET]) { 
-                    this.hands[I_D_PAIRE][I_GET] = true 
+                if(this.hands[I.PAIRE][I.GET]) { 
+                    this.hands[I.D_PAIRE][I.GET] = true 
                     
-                    if (value > this.hands[I_D_PAIRE][I_VALUE]) {
-                        this.hands[I_D_PAIRE][I_VALUE] = value
+                    if (value > this.hands[I.D_PAIRE][I.VALUE]) {
+                        this.hands[I.D_PAIRE][I.VALUE] = value
                     }
                 }
                 // Paire
-                this.hands[I_PAIRE][I_GET] = true
+                this.hands[I.PAIRE][I.GET] = true
                 
-                if (value > this.hands[I_PAIRE][I_VALUE]) {
-                    this.hands[I_PAIRE][I_VALUE] = value
+                if (value > this.hands[I.PAIRE][I.VALUE]) {
+                    this.hands[I.PAIRE][I.VALUE] = value
                 } 
             }
             if(length == 3) { 
                 // Brelan
-                this.hands[I_BRELAN][I_GET] = true
+                this.hands[I.BRELAN][I.GET] = true
                 
-                if (value > this.hands[I_BRELAN][I_VALUE]) {
-                    this.hands[I_BRELAN][I_VALUE] = value
+                if (value > this.hands[I.BRELAN][I.VALUE]) {
+                    this.hands[I.BRELAN][I.VALUE] = value
                 }
             }
             if(length == 4) { 
                 // Carré
-                this.hands[I_CARRE][I_GET] = true
-                this.hands[I_CARRE][I_VALUE] = value
+                this.hands[I.CARRE][I.GET] = true
+                this.hands[I.CARRE][I.VALUE] = value
             }
         }
         // Full
-        if(this.hands[I_BRELAN][I_GET] && this.hands[I_PAIRE][I_GET] && this.hands[I_BRELAN][I_VALUE] != this.hands[I_PAIRE][I_VALUE]) {
-            this.hands[I_FULL][I_GET] = true
-            this.hands[I_FULL][I_VALUE] = this.hands[I_BRELAN][I_VALUE]
+        if(this.hands[I.BRELAN][I.GET] && this.hands[I.PAIRE][I.GET] && this.hands[I.BRELAN][I.VALUE] != this.hands[I.PAIRE][I.VALUE]) {
+            this.hands[I.FULL][I.GET] = true
+            this.hands[I.FULL][I.VALUE] = this.hands[I.BRELAN][I.VALUE]
         }
     }
 
@@ -223,19 +219,19 @@ module.exports = class Cards {
             if(length > this.max_suite) { this.max_suite = length }
 
             if(length >= 5) {
-                this.hands[I_QUINTE][I_GET] = true
-                this.hands[I_QUINTE][I_VALUE] = get_value(suites[i][length - 1])
+                this.hands[I.QUINTE][I.GET] = true
+                this.hands[I.QUINTE][I.VALUE] = get_value(suites[i][length - 1])
             }
         }
 
-        if(this.hands[I_QUINTE][I_GET] && this.hands[I_COULEUR][I_GET] && this.hands[I_QUINTE][I_VALUE] == this.hands[I_COULEUR][I_VALUE]) {
-            this.hands[I_QUINTE_F][I_GET] = true
-            this.hands[I_QUINTE_F][I_VALUE] = this.hands[I_QUINTE][I_VALUE]
+        if(this.hands[I.QUINTE][I.GET] && this.hands[I.COULEUR][I.GET] && this.hands[I.QUINTE][I.VALUE] == this.hands[I.COULEUR][I.VALUE]) {
+            this.hands[I.QUINTE_F][I.GET] = true
+            this.hands[I.QUINTE_F][I.VALUE] = this.hands[I.QUINTE][I.VALUE]
         }
 
-        if(this.hands[I_QUINTE_F][I_GET] && this.hands[I_QUINTE_F][I_VALUE] == 14) {
-            this.hands[I_QUINTE_R][I_GET] = true
-            this.hands[I_QUINTE_R][I_VALUE] = 14
+        if(this.hands[I.QUINTE_F][I.GET] && this.hands[I.QUINTE_F][I.VALUE] == 14) {
+            this.hands[I.QUINTE_R][I.GET] = true
+            this.hands[I.QUINTE_R][I.VALUE] = 14
         }
     }
         
@@ -248,9 +244,9 @@ module.exports = class Cards {
             mult = 1
 
         for (var i = this.hands.length - 1; i >= 0; i--) {
-            if(this.hands[i][I_GET]) { 
-                coef = this.hands[i][I_COEF]; 
-                mult = 1 + this.hands[i][I_VALUE] / 70;
+            if(this.hands[i][I.GET]) { 
+                coef = this.hands[i][I.COEF]; 
+                mult = 1 + this.hands[i][I.VALUE] / 70;
                 break 
             }
         }
@@ -259,7 +255,7 @@ module.exports = class Cards {
 
         switch (i) {
             
-            case I_CARTE:
+            case I.CARTE:
             if(nb_cards <= 2) { coef = 0.05 }
             if(nb_cards == 3) { 
                 coef = 0; 
@@ -292,7 +288,7 @@ module.exports = class Cards {
             if(nb_cards >= 7) { coef = 0 }
             break
             
-            case I_PAIRE:
+            case I.PAIRE:
             if(nb_cards == 2) { 
                 coef = 0.15
             }
@@ -332,14 +328,14 @@ module.exports = class Cards {
             }
             break
 
-            case I_D_PAIRE:
+            case I.D_PAIRE:
             if(nb_cards == 4) { coef = 0.2 }
             if(nb_cards == 5) { coef = 0.17 }
             if(nb_cards == 6) { coef = 0.15 }
             if(nb_cards >= 7) { coef = 0.1 }
             break
 
-            case I_BRELAN:
+            case I.BRELAN:
             if(nb_cards == 3) { coef = 0.5 }
             if(nb_cards == 4) { coef = 0.4 }
             if(nb_cards == 5) { coef = 0.2 }
@@ -347,19 +343,22 @@ module.exports = class Cards {
             if(nb_cards >= 7) { coef = 0.15 }
             break
 
-            case I_QUINTE, I_COULEUR:
+            case I.QUINTE:
+            case I.COULEUR:
             if(nb_cards == 5) { coef = 1 }
             if(nb_cards == 6) { coef = 0.8 }
             if(nb_cards >= 7) { coef = 0.5 }
             break
 
-            case I_FULL:
+            case I.FULL:
             if(nb_cards == 5) { coef = 1 }
             if(nb_cards == 6) { coef = 1 }
             if(nb_cards >= 7) { coef = 0.8 }
             break
 
-            case I_CARRE, I_QUINTE_F, I_QUINTE_R:
+            case I.CARRE:
+            case I.QUINTE_F:
+            case I.QUINTE_R:
             break
                 
             default:
