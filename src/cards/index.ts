@@ -3,27 +3,59 @@
 import default_config from './config.json'
 import I from './constants.json'
 
-const kind_to_digit = c => c == "1" ? 14 : (c == "JACK" ? 11 : (c == "QUEEN" ? 12 : (c == "KING" ? 13 : parseInt(c))))
-const card_to_digit = card => ({ color: card.color, kind: kind_to_digit(card.kind) })
-const get_value = card => card.kind
-const get_color = card => card.color
-const clone_card = card => ({ color: card.color, kind: card.kind })
+export interface rawCard {
+    color: string
+    kind: string
+}
+interface card {
+    color: string
+    kind: number
+}
+interface config {
+    debug: boolean
+}
+
+const kind_to_digit = (c: string): number => c == "1" ? 14 : (c == "JACK" ? 11 : (c == "QUEEN" ? 12 : (c == "KING" ? 13 : parseInt(c))))
+const card_to_digit = (card: rawCard): card => ({ color: card.color, kind: kind_to_digit(card.kind) })
+const get_value = (card: card): number => card.kind
+const get_color = (card: card): string => card.color
+const clone_card = (card: card): card => ({ color: card.color, kind: card.kind })
+
+export interface cards {
+    config: config
+    hands: [boolean, number, number][]
+    cards: card []
+    nb_as: number
+    max_suite: number
+    max_color: number
+    coef: number
+
+    reset(): void
+    _log(string): void
+    log_hand(): void
+    log_cards(): void
+    add_card(rawCard): void
+    add_cards([rawCard]): void
+    check_colors(): void
+    check_same(): void
+    check_suites(): void
+    check_hand(): void
+}
+
+export class Cards implements cards {
+    config: config = default_config
+    hands: [boolean, number, number][] = null
+    cards: card[] = []
+    nb_as: number = 0
+    max_suite: number = 0
+    max_color: number = 0
+    coef: number = 0.15
 
 
-module.exports = class Cards {
-    config = default_config
-    hands = null
-    cards = []
-    nb_as = 0
-    max_suite = 0
-    max_color = 0
-    coef = 0.15
-
-
-    constructor(config?) {
-        if(config) { this.config = config }
-
-        console.log(this.config)
+    constructor(config?: config) {
+        if(config) { 
+            this.config = config 
+        }
 
         this.reset()
     }
@@ -48,7 +80,7 @@ module.exports = class Cards {
         this.coef = 0.15
     }
 
-    log(message) {
+    _log(message: string) {
         if(this.config.debug) {
             console.log(message)
         }
@@ -68,16 +100,16 @@ module.exports = class Cards {
             QUINTE_R: { get: this.hands[I.QUINTE_R][I.GET], value: this.hands[I.QUINTE_R][I.VALUE], coef: this.hands[I.QUINTE_R][I.COEF] },
         }
 
-        console.log(json)
+        console.log(json.toString())
     }
 
     log_cards () {
         console.log(this.cards)
     }
 
-    add_card (newcard) {
-        var card = card_to_digit(newcard)
-        var value = get_value(card)
+    add_card (newcard: rawCard) {
+        var card: card = card_to_digit(newcard)
+        var value: number = get_value(card)
 
         for (var i = 0; i < this.cards.length; i++) {
             if(value <= get_value(this.cards[i])) {
@@ -88,7 +120,7 @@ module.exports = class Cards {
 
         // si un As, alors on ajoute sa deuxième utilisation comme 1 pour les suites
         if(value == 14) {
-            var newAs = clone_card(card)
+            var newAs: card = clone_card(card)
             newAs.kind = 1
             this.cards.splice(0, 0, newAs)
 
@@ -96,7 +128,7 @@ module.exports = class Cards {
         }
     }
 
-    add_cards (newcards) {
+    add_cards (newcards: [rawCard]) {
         newcards.forEach(newcard => {
             this.add_card(newcard)
         })
@@ -105,14 +137,14 @@ module.exports = class Cards {
     check_colors () {
         var COULEURS = []
         COULEURS["DIAMOND"] = []
-        COULEURS["SPADE"] = [] 
+        COULEURS["SPADE"] = []
         COULEURS["HEART"] = []
         COULEURS["CLUB"] = []
 
         // Regroupement des couleurs (on ignore les 1)
         for (let i = this.nb_as; i < this.cards.length; i++) {
-            var color = get_color(this.cards[i])
-            var value = get_value(this.cards[i])
+            var color: string = get_color(this.cards[i])
+            var value: number = get_value(this.cards[i])
             
             COULEURS[color].push(this.cards[i])
 
@@ -131,13 +163,13 @@ module.exports = class Cards {
 
     check_same () {
         var identiques = [
-            [this.cards[this.nb_as]]
+            [<card> this.cards[this.nb_as]]
         ]
         
         // Constitution de la liste des cartes identiques (on ignore les 1)
         for (let i = this.nb_as, s = 0; i < this.cards.length - 1; i++) {
             
-            var diff = get_value(this.cards[i+1]) - get_value(this.cards[i])
+            var diff: number = get_value(this.cards[i+1]) - get_value(this.cards[i])
 
             if(diff != 0) {
                 s++
@@ -149,7 +181,7 @@ module.exports = class Cards {
         // Vérifications
         for (let i = 0; i < identiques.length; i++) {
             var length = identiques[i].length
-            var value = get_value(identiques[i][0])
+            var value: number = get_value(identiques[i][0])
 
             if(length == 1) {
                 this.hands[I.CARTE][I.GET] = true
@@ -240,18 +272,17 @@ module.exports = class Cards {
         this.check_colors()
         this.check_suites()
 
-        var coef = 0, 
-            mult = 1
+        var coef: number = 0, 
+            mult: number = 1,
+            nb_cards: number = this.cards.length - this.nb_as
 
         for (var i = this.hands.length - 1; i >= 0; i--) {
             if(this.hands[i][I.GET]) { 
-                coef = this.hands[i][I.COEF]; 
-                mult = 1 + this.hands[i][I.VALUE] / 70;
+                coef = <number> this.hands[i][I.COEF]
+                mult = 1 + <number> this.hands[i][I.VALUE] / 70
                 break 
             }
         }
-
-        var nb_cards = this.cards.length - this.nb_as
 
         switch (i) {
             
@@ -367,6 +398,9 @@ module.exports = class Cards {
 
         this.coef = coef * mult
 
-        this.log("coef: " + coef + " * " + mult + " = " + this.coef)
+        this._log("coef: " + coef + " * " + mult + " = " + this.coef)
     }
 }
+
+
+module.exports = Cards

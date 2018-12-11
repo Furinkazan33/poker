@@ -6,10 +6,11 @@ var express = require('express');
 var logger = require('morgan');
 var app = express();
 app.use(logger(env));
-var Player = require('./player')
+
+var GameClient = require('./gameClient')
 var Cards = require('./cards')
 
-var player = new Player(new Cards(), {
+var gameClient1 = new GameClient(new Cards(), {
     "debug": false,
     "name": "P1",
     "aggressivite": 1.3,
@@ -17,7 +18,7 @@ var player = new Player(new Cards(), {
     "host": "localhost", "port": 4000
 })
 
-var player2 = new Player(new Cards({ debug: true }), {
+var gameClient2 = new GameClient(new Cards({ debug: true }), {
     "debug": false,
     "name": "P2",
     "aggressivite": 1.5,
@@ -25,7 +26,7 @@ var player2 = new Player(new Cards({ debug: true }), {
     "host": "localhost", "port": 4000
 })
 
-var player3 = new Player(new Cards(), {
+var gameClient3 = new GameClient(new Cards(), {
     "debug": false,
     "name": "P3",
     "aggressivite": 1.8,
@@ -33,7 +34,7 @@ var player3 = new Player(new Cards(), {
     "host": "localhost", "port": 4000
 })
 
-var player4 = new Player(new Cards(), {
+var gameClient4 = new GameClient(new Cards(), {
     "debug": false,
     "name": "P4",
     "aggressivite": 2,
@@ -41,12 +42,12 @@ var player4 = new Player(new Cards(), {
     "host": "localhost", "port": 4000
 })
 
-var players = [ player, player2, player3, player4 ]
+var gameClients = [ gameClient1, gameClient2, gameClient3, gameClient4 ]
 
-players.forEach(player => {
-    player.connect(function() {
-        player.start_playing()
-    })    
+gameClients.forEach(client => {
+    client.connect(function() {
+        client.start_playing()
+    })
 })
 
 
