@@ -85,7 +85,7 @@ function jsonMultiParse(input: string, acc, cb) {
     }
 }
 
-export interface game {
+export interface gameClient {
     config: config
     cards: cards
     socket
@@ -105,7 +105,7 @@ export interface game {
     start_playing(): void
 }
 
-export class Game implements game {
+export class GameClient implements gameClient {
     config: config = default_config
     cards: cards = null
     socket = null
